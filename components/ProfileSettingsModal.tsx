@@ -10,15 +10,24 @@ interface ProfileSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialTab?: 'profile' | 'preferences' | 'notifications' | 'security' | 'activity' | 'tokens';
+    isDarkMode: boolean;
+    onThemeChange: (theme: 'light' | 'dark') => void;
+    notificationsEnabled: boolean;
+    onToggleNotifications: () => void;
 }
 
 const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     user,
     isOpen,
     onClose,
-    initialTab = 'profile'
+    initialTab = 'profile',
+    isDarkMode,
+    onThemeChange,
+    notificationsEnabled,
+    onToggleNotifications
 }) => {
     const [activeTab, setActiveTab] = useState(initialTab);
+    const [showThemeDropdown, setShowThemeDropdown] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     if (!isOpen) return null;
@@ -35,7 +44,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer" onClick={onClose} />
 
             {/* Modal Container */}
             <div className="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl overflow-hidden flex animate-in zoom-in slide-in-from-bottom-4 duration-300 border border-gray-100 dark:border-slate-800">
@@ -89,7 +98,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-auto custom-scrollbar p-12 bg-white dark:bg-slate-900">
-                    <button onClick={onClose} className="absolute top-8 right-8 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-gray-400">
+                    <button onClick={onClose} className="absolute top-8 right-8 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-full transition-all text-gray-400 hover:text-indigo-600">
                         <X className="h-6 w-6" />
                     </button>
 
@@ -182,7 +191,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                                             When deactivating an account, all of the data and resources within that account will be permanently removed and cannot be recovered.
                                         </p>
                                     </div>
-                                    <button className="px-6 py-3 border-2 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-bold rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/20 transition-all active:scale-95">
+                                    <button className="px-6 py-3 border-2 border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all active:scale-95">
                                         Deactivate account
                                     </button>
                                 </div>
@@ -209,9 +218,34 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                                             <p className="text-[11px] text-gray-500">Select or customize your interface color scheme.</p>
                                         </div>
                                     </div>
-                                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all">
-                                        Select your theme <ChevronDown className="h-4 w-4" />
-                                    </button>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+                                            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all capitalize"
+                                        >
+                                            {isDarkMode ? 'Dark' : 'Light'} <ChevronDown className="h-4 w-4" />
+                                        </button>
+
+                                        {showThemeDropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setShowThemeDropdown(false)} />
+                                                <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-150">
+                                                    <button
+                                                        onClick={() => { onThemeChange('light'); setShowThemeDropdown(false); }}
+                                                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-between ${!isDarkMode ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-slate-300'}`}
+                                                    >
+                                                        Light {!isDarkMode && <Check className="h-3 w-3" />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { onThemeChange('dark'); setShowThemeDropdown(false); }}
+                                                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-between ${isDarkMode ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-slate-300'}`}
+                                                    >
+                                                        Dark {isDarkMode && <Check className="h-3 w-3" />}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-slate-950/50 rounded-[24px] border border-gray-100 dark:border-slate-800">
@@ -245,7 +279,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                                                 <p className="text-[11px] text-gray-500">Current timezone setting.</p>
                                             </div>
                                         </div>
-                                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all min-w-[120px] justify-between">
+                                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all min-w-[120px] justify-between">
                                             UTC <ChevronDown className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -260,7 +294,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                                                 <p className="text-[11px] text-gray-500">Choose the language used in the user interface.</p>
                                             </div>
                                         </div>
-                                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all min-w-[120px] justify-between">
+                                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all min-w-[120px] justify-between">
                                             English <ChevronDown className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -330,7 +364,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                                 </div>
 
                                 <div className="pt-2">
-                                    <button className="bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-slate-600 font-bold py-3.5 px-8 rounded-2xl cursor-not-allowed transition-all">
+                                    <button className="bg-indigo-100 dark:bg-slate-800 text-indigo-400 dark:text-slate-600 font-bold py-3.5 px-8 rounded-2xl cursor-not-allowed transition-all">
                                         Change password
                                     </button>
                                 </div>
@@ -338,8 +372,41 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                         </div>
                     )}
 
+                    {/* Notifications Tab */}
+                    {activeTab === 'notifications' && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Notifications</h2>
+                                <p className="text-sm text-gray-500 dark:text-slate-500">Manage how and when you receive updates</p>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-slate-950/50 rounded-[24px] border border-gray-100 dark:border-slate-800 transition-all">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${notificationsEnabled ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600'}`}>
+                                            <Bell className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white">Enable Notifications</h4>
+                                            <p className="text-[11px] text-gray-500">Receive alerts for sprint deadlines and important updates.</p>
+                                        </div>
+                                    </div>
+                                    <div className="relative inline-flex items-center cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={notificationsEnabled}
+                                            onChange={onToggleNotifications}
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600 shadow-inner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Placeholder for other tabs */}
-                    {['notifications', 'activity', 'tokens'].includes(activeTab) && (
+                    {['activity', 'tokens'].includes(activeTab) && (
                         <div className="h-full flex flex-col items-center justify-center text-center p-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="h-20 w-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center mb-6">
                                 <Activity className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />

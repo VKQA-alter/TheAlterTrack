@@ -121,7 +121,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, project, users, sprint
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all hover:text-indigo-600"
             >
               <X className="h-5 w-5" />
             </button>
@@ -160,7 +160,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, project, users, sprint
                       className="w-full bg-transparent border-none outline-none text-xs resize-none h-12 dark:text-white"
                     />
                     <div className="flex justify-end pt-2">
-                      <button className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-900 rounded-lg transition-all">
+                      <button className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all">
                         <Send className="h-4 w-4" />
                       </button>
                     </div>

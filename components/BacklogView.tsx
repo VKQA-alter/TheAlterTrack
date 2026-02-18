@@ -147,13 +147,13 @@ const BacklogView: React.FC<BacklogViewProps> = ({
       {sprints.map(sprint => (
         <div key={sprint.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
           <div
-            className="flex items-center justify-between px-6 py-4 bg-gray-50/50 dark:bg-slate-800/30 border-b border-gray-50 dark:border-slate-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group/sprint"
+            className="flex items-center justify-between px-6 py-4 bg-gray-50/50 dark:bg-slate-800/30 border-b border-gray-50 dark:border-slate-800 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors group/sprint"
             onClick={() => onSprintClick(sprint.id)}
           >
             <div className="flex items-center gap-4">
               <button
                 onClick={(e) => toggleExpand(sprint.id, e)}
-                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors"
+                className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded transition-colors"
               >
                 {expandedSprints[sprint.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </button>

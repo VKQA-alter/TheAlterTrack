@@ -113,12 +113,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => onQuickCreate(status.id)}
-                className="p-1 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/20 rounded-lg transition-colors cursor-pointer"
+                className="p-1 text-gray-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
                 title="Quick Create Issue"
               >
                 <Plus className="h-5 w-5 stroke-[2.5]" />
               </button>
-              <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer">
+              <button className="p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors cursor-pointer">
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             </div>
@@ -144,7 +144,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                 >
                   <div className="flex justify-between items-start mb-2" onClick={e => e.stopPropagation()}>
                     <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 tracking-wider font-mono cursor-default">{issue.key}</span>
-                    <button className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <button className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600">
                       <MoreHorizontal className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -173,7 +173,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={s.id}
                                 onClick={() => handleUpdate(issue, { statusId: s.id })}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
                                 {s.name}
@@ -200,7 +200,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={p}
                                 onClick={() => handleUpdate(issue, { priority: p })}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <PriorityIcon priority={p} className="h-3 w-3" />
                                 {p}
@@ -287,7 +287,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={u.id}
                                 onClick={() => handleUpdate(issue, { assigneeId: u.id })}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <img src={u.avatar} className="h-4 w-4 rounded-full" alt="" />
                                 {u.name}
@@ -324,7 +324,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={m.id}
                                 onClick={() => handleUpdate(issue, { moduleIds: [m.id] })}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <Boxes className="h-3 w-3" />
                                 {m.name}
@@ -357,7 +357,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={s.id}
                                 onClick={() => handleUpdate(issue, { sprintId: s.id })}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <Disc className={`h-3 w-3 ${s.isActive ? 'text-indigo-500' : ''}`} />
                                 {s.name}
@@ -384,7 +384,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                               <button
                                 key={l.id}
                                 onClick={() => toggleLabel(issue, l.id)}
-                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-[10px] font-bold text-gray-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
                               >
                                 <div className="h-2 w-2 rounded-full" style={{ backgroundColor: l.color }} />
                                 {l.name}
