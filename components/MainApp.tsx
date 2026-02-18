@@ -27,7 +27,7 @@ import {
     AlertCircle,
     ChevronRight
 } from 'lucide-react';
-import { Project, Issue, User, Sprint, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote } from '../types';
+import { Project, Issue, User, Sprint, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote, ProjectPlatform } from '../types';
 import { MOCK_USERS, DEFAULT_STATUSES, MOCK_LABELS, MOCK_MODULES } from '../constants';
 import KanbanBoard from './KanbanBoard';
 import PriorityIcon from './PriorityIcon';
@@ -45,6 +45,7 @@ import Home from '@/components/Home';
 import ProfileDropdown from './ProfileDropdown';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import SignIn from './SignIn';
+import { supabase } from '../lib/supabase';
 
 const MainApp: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -83,10 +84,48 @@ const MainApp: React.FC = () => {
     const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
     const [profileSettingsTab, setProfileSettingsTab] = useState<'profile' | 'preferences' | 'security'>('profile');
 
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            setIsLoadingProjects(true);
+            const { data, error } = await supabase.from('projects').select('*');
+            if (!error && data) {
+                setProjects(data as Project[]);
+            }
+            setIsLoadingProjects(false);
+        };
+        fetchProjects();
+    }, []);
+
+    const handleCreateProject = async (name: string, key: string, description: string, logo: string, visibility: 'PUBLIC' | 'PRIVATE', platform: ProjectPlatform) => {
+        const newProj: Project = {
+            id: `p${Date.now()}`,
+            key, name, description, logo, visibility, platform,
+            statuses: DEFAULT_STATUSES,
+            modules: [], labels: [], members: [{ userId: 'u1', role: 'OWNER' }]
+        };
+
+        const { error } = await supabase.from('projects').insert([newProj]);
+        if (!error) {
+            setProjects(prev => [...prev, newProj]);
+        } else {
+            console.error('Error creating project:', error);
+            alert('Failed to create project in Supabase. Check console.');
+        }
+    };
+
     useEffect(() => {
         // Only access localStorage on the client side
         const savedTheme = localStorage.getItem('theme');
-        setIsDarkMode(savedTheme === 'dark');
+        if (savedTheme === 'dark') {
+            setIsDarkMode(true);
+            document.documentElement.classList.add('dark');
+        } else {
+            setIsDarkMode(false);
+            document.documentElement.classList.remove('dark');
+        }
     }, []);
 
     useEffect(() => {
@@ -98,33 +137,6 @@ const MainApp: React.FC = () => {
             localStorage.setItem('theme', 'light');
         }
     }, [isDarkMode]);
-
-    const [projects, setProjects] = useState<Project[]>([
-        {
-            id: 'p1',
-            key: 'ALT',
-            name: 'AlterTrack Core',
-            description: 'The main issue and project management engine.',
-            visibility: 'PUBLIC',
-            platform: 'WEBSITE',
-            statuses: DEFAULT_STATUSES,
-            modules: MOCK_MODULES,
-            labels: MOCK_LABELS,
-            members: [{ userId: 'u1', role: 'OWNER' }, { userId: 'u2', role: 'MEMBER' }]
-        },
-        {
-            id: 'p2',
-            key: 'UI',
-            name: 'AlterTrack UI System',
-            description: 'The React component library and design system.',
-            visibility: 'PRIVATE',
-            platform: 'MOBILE',
-            statuses: DEFAULT_STATUSES,
-            modules: [],
-            labels: [],
-            members: [{ userId: 'u1', role: 'OWNER' }]
-        }
-    ]);
 
     const [sprints, setSprints] = useState<Sprint[]>([
         {
@@ -313,17 +325,29 @@ const MainApp: React.FC = () => {
 
     const isFiltered = selectedSprintIds.length > 0 || selectedModuleIds.length > 0 || selectedLabelIds.length > 0 || selectedIssueTypes.length > 0;
 
-    const handleDeleteProject = (projectId: string) => {
-        setProjects(prev => prev.filter(p => p.id !== projectId));
-        setIssues(prev => prev.filter(i => i.projectId !== projectId));
-        if (selectedProjectId === projectId) {
-            setSelectedProjectId(null);
-            setActiveTab('workspace');
+    const handleDeleteProject = async (projectId: string) => {
+        const { error } = await supabase.from('projects').delete().eq('id', projectId);
+        if (!error) {
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+            setIssues(prev => prev.filter(i => i.projectId !== projectId));
+            if (selectedProjectId === projectId) {
+                setSelectedProjectId(null);
+                setActiveTab('workspace');
+            }
+        } else {
+            console.error('Error deleting project:', error);
+            alert('Failed to delete project in Supabase.');
         }
     };
 
-    const handleUpdateProject = (id: string, updates: Partial<Project>) => {
-        setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    const handleUpdateProject = async (id: string, updates: Partial<Project>) => {
+        const { error } = await supabase.from('projects').update(updates).eq('id', id);
+        if (!error) {
+            setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+        } else {
+            console.error('Error updating project:', error);
+            alert('Failed to update project in Supabase.');
+        }
     };
 
     const handleCreateBacklogItem = (item: Omit<BacklogItem, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => {
@@ -355,7 +379,7 @@ const MainApp: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-transparent overflow-hidden transition-colors duration-200">
+        <div className={`flex h-screen bg-transparent overflow-hidden transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
             <Sidebar
                 activeProject={activeProject}
                 activeTab={activeTab}
@@ -668,15 +692,8 @@ const MainApp: React.FC = () => {
                     ) : activeTab === 'workspace' || !activeProject ? (
                         <Dashboard
                             projects={projects}
-                            onSelectProject={(id) => { setSelectedProjectId(id); setActiveTab('issues'); }}
-                            onCreateProject={(name, key, description, logo, visibility, platform) => {
-                                const newProj: Project = {
-                                    id: `p${Date.now()}`,
-                                    key, name, description, logo, visibility, platform, statuses: DEFAULT_STATUSES,
-                                    modules: [], labels: [], members: [{ userId: 'u1', role: 'OWNER' }]
-                                };
-                                setProjects([...projects, newProj]);
-                            }}
+                            onSelectProject={(id: string) => { setSelectedProjectId(id); setActiveTab('issues'); }}
+                            onCreateProject={handleCreateProject}
                             onDeleteProject={handleDeleteProject}
                             onUpdateProject={handleUpdateProject}
                         />

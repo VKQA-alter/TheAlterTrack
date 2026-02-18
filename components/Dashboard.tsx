@@ -44,7 +44,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [newDescription, setNewDescription] = useState('');
   const [newLogo, setNewLogo] = useState('');
   const [newVisibility, setNewVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PRIVATE');
-  const [newPlatform, setNewPlatform] = useState<ProjectPlatform>('WEBSITE');
+  const [newPlatform, setNewPlatform] = useState<ProjectPlatform>('DESKTOP');
 
   const openCreateModal = () => {
     setModalMode('CREATE');
@@ -71,7 +71,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     setNewDescription('');
     setNewLogo('');
     setNewVisibility('PRIVATE');
-    setNewPlatform('WEBSITE');
+    setNewPlatform('DESKTOP');
     setEditingProjectId(null);
   };
 
@@ -95,6 +95,207 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
+  const renderModals = () => (
+    <>
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] w-full max-w-[900px] min-h-[510px] shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {modalMode === 'CREATE' ? 'Create Project' : 'Edit Project'}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Define your project identity.</p>
+              </div>
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full text-gray-400 hover:text-indigo-600 transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-3">
+                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Project Name</label>
+                  <input
+                    autoFocus
+                    type="text"
+                    required
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g., Marketing Site"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Key</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={5}
+                    value={newKey}
+                    onChange={(e) => setNewKey(e.target.value.toUpperCase())}
+                    placeholder="e.g., MKT"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Description</label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="What is this project about?"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white h-32 resize-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Project Logo (JPEG/PNG)</label>
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 bg-gray-50 dark:bg-slate-800 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl flex items-center justify-center overflow-hidden text-gray-400">
+                    {newLogo ? (
+                      <img src={newLogo} alt="Preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <ImageIcon className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setNewLogo(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="block w-full text-xs text-gray-500 dark:text-slate-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-xl file:border-0
+                        file:text-xs file:font-semibold
+                        file:bg-indigo-50 file:text-indigo-700
+                        dark:file:bg-indigo-900/30 dark:file:text-indigo-400
+                        hover:file:bg-indigo-100 transition-all"
+                    />
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">Maximum size: 2MB. Recommended: Square image.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 block">Visibility</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewVisibility('PUBLIC')}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newVisibility === 'PUBLIC'
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                        : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
+                        }`}
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="text-sm font-semibold">Public</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewVisibility('PRIVATE')}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newVisibility === 'PRIVATE'
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                        : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
+                        }`}
+                    >
+                      <Lock className="h-4 w-4" />
+                      <span className="text-sm font-semibold">Private</span>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 block">Project Platform</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewPlatform('DESKTOP')}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newPlatform === 'DESKTOP'
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                        : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
+                        }`}
+                    >
+                      <Monitor className="h-4 w-4" />
+                      <span className="text-sm font-semibold">DESKTOP</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewPlatform('MOBILE')}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newPlatform === 'MOBILE'
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+                        : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
+                        }`}
+                    >
+                      <Smartphone className="h-4 w-4" />
+                      <span className="text-sm font-semibold">Mobile</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-6 mt-auto bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 p-8 sticky bottom-0">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-3 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-bold transition-all border border-indigo-100 dark:border-indigo-900/30"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                >
+                  {modalMode === 'CREATE' ? 'Create Project' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200 p-6">
+            <div className="flex items-center gap-3 text-red-500 mb-4">
+              <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold">Delete Project?</h3>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+              This will permanently delete <span className="font-bold text-gray-900 dark:text-white">"{projects.find(p => p.id === showDeleteConfirm)?.name}"</span> and all its association data. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  onDeleteProject(showDeleteConfirm);
+                  setShowDeleteConfirm(null);
+                }}
+                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   if (projects.length === 0) {
     return (
       <div className="max-w-6xl mx-auto py-20 px-4">
@@ -114,6 +315,8 @@ const Dashboard: React.FC<DashboardProps> = ({
             Create Project
           </button>
         </div>
+
+        {renderModals()}
       </div>
     );
   }
@@ -245,200 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {modalMode === 'CREATE' ? 'Create Project' : 'Edit Project'}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-slate-400">Define your project identity.</p>
-              </div>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full text-gray-400 hover:text-indigo-600 transition-colors">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-3">
-                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Project Name</label>
-                  <input
-                    autoFocus
-                    type="text"
-                    required
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g., Marketing Site"
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Key</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={5}
-                    value={newKey}
-                    onChange={(e) => setNewKey(e.target.value.toUpperCase())}
-                    placeholder="e.g., MKT"
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Description</label>
-                <textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="What is this project about?"
-                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white h-24 resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1 block">Project Logo (JPEG/PNG)</label>
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 bg-gray-50 dark:bg-slate-800 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl flex items-center justify-center overflow-hidden text-gray-400">
-                    {newLogo ? (
-                      <img src={newLogo} alt="Preview" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImageIcon className="h-6 w-6" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setNewLogo(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="block w-full text-xs text-gray-500 dark:text-slate-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-xl file:border-0
-                        file:text-xs file:font-semibold
-                        file:bg-indigo-50 file:text-indigo-700
-                        dark:file:bg-indigo-900/30 dark:file:text-indigo-400
-                        hover:file:bg-indigo-100 transition-all"
-                    />
-                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">Maximum size: 2MB. Recommended: Square image.</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 block">Visibility</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setNewVisibility('PUBLIC')}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newVisibility === 'PUBLIC'
-                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                      : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
-                      }`}
-                  >
-                    <Globe className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Public</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewVisibility('PRIVATE')}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newVisibility === 'PRIVATE'
-                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                      : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
-                      }`}
-                  >
-                    <Lock className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Private</span>
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 block">Project Platform</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setNewPlatform('WEBSITE')}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newPlatform === 'WEBSITE'
-                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                      : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
-                      }`}
-                  >
-                    <Monitor className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Website</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewPlatform('MOBILE')}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${newPlatform === 'MOBILE'
-                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                      : 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-200 dark:hover:border-slate-700'
-                      }`}
-                  >
-                    <Smartphone className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Mobile</span>
-                  </button>
-                </div>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-semibold transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-sm"
-                >
-                  {modalMode === 'CREATE' ? 'Create Project' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div >
-        </div >
-      )}
-
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200 p-6">
-            <div className="flex items-center gap-3 text-red-500 mb-4">
-              <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold">Delete Project?</h3>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
-              This will permanently delete <span className="font-bold text-gray-900 dark:text-white">"{projects.find(p => p.id === showDeleteConfirm)?.name}"</span> and all its association data. This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-semibold transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  onDeleteProject(showDeleteConfirm);
-                  setShowDeleteConfirm(null);
-                }}
-                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {renderModals()}
     </div >
   );
 };

@@ -2,7 +2,7 @@
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type IssueType = 'ISSUE' | 'TASK' | 'FEATURE';
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
-export type ProjectPlatform = 'WEBSITE' | 'MOBILE';
+export type ProjectPlatform = 'DESKTOP' | 'MOBILE';
 
 export interface User {
   id: string;
