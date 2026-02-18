@@ -20,7 +20,12 @@ import {
     Boxes,
     Home as HomeIcon,
     StickyNote as StickyIcon,
-    LayoutGrid
+    LayoutGrid,
+    ArrowLeft,
+    Target,
+    Layers,
+    AlertCircle,
+    ChevronRight
 } from 'lucide-react';
 import { Project, Issue, User, Sprint, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote } from '../types';
 import { MOCK_USERS, DEFAULT_STATUSES, MOCK_LABELS, MOCK_MODULES } from '../constants';
@@ -49,12 +54,21 @@ const MainApp: React.FC = () => {
     const [testCaseFiles, setTestCaseFiles] = useState<TestCaseFile[]>([]);
     const [backlogItems, setBacklogItems] = useState<BacklogItem[]>([]);
 
-    // Filters
-    const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
-    const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
-    const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
-    const [selectedIssueType, setSelectedIssueType] = useState<IssueType | null>(null);
-    const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+    // Filters (Multi-select)
+    const [selectedSprintIds, setSelectedSprintIds] = useState<string[]>([]);
+    const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
+    const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+    const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
+
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [filterView, setFilterView] = useState<'categories' | 'sprints' | 'modules' | 'labels' | 'types'>('categories');
+    const [tempFilters, setTempFilters] = useState({
+        sprints: [] as string[],
+        modules: [] as string[],
+        labels: [] as string[],
+        types: [] as IssueType[]
+    });
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
     const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
     const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
@@ -213,7 +227,7 @@ const MainApp: React.FC = () => {
                 }
             });
 
-            if (changed) {
+            if (changed && notificationsEnabled) {
                 setNotifications(prev => [...newNotifications, ...prev]);
                 setNotifiedSprintIds(newNotifiedIds);
             }
@@ -230,14 +244,15 @@ const MainApp: React.FC = () => {
         return issues.filter(issue => {
             const matchesSearch = issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 issue.key.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesSprint = !selectedSprintId || issue.sprintId === selectedSprintId;
-            const matchesModule = !selectedModuleId || issue.moduleIds.includes(selectedModuleId);
-            const matchesLabel = !selectedLabelId || issue.labelIds.includes(selectedLabelId);
-            const matchesType = !selectedIssueType || issue.type === selectedIssueType;
+
+            const matchesSprint = selectedSprintIds.length === 0 || (issue.sprintId && selectedSprintIds.includes(issue.sprintId));
+            const matchesModule = selectedModuleIds.length === 0 || issue.moduleIds.some(mId => selectedModuleIds.includes(mId));
+            const matchesLabel = selectedLabelIds.length === 0 || issue.labelIds.some(lId => selectedLabelIds.includes(lId));
+            const matchesType = selectedIssueTypes.length === 0 || selectedIssueTypes.includes(issue.type);
 
             return matchesSearch && matchesSprint && matchesModule && matchesLabel && matchesType;
         });
-    }, [issues, searchQuery, selectedSprintId, selectedModuleId, selectedLabelId, selectedIssueType]);
+    }, [issues, searchQuery, selectedSprintIds, selectedModuleIds, selectedLabelIds, selectedIssueTypes]);
 
     const openIssueDetail = (issue: Issue) => {
         setSelectedIssue(issue);
@@ -245,7 +260,7 @@ const MainApp: React.FC = () => {
     };
 
     const handleSprintClick = (sprintId: string) => {
-        setSelectedSprintId(sprintId);
+        setSelectedSprintIds([sprintId]);
         setActiveTab('issues');
     };
 
@@ -269,7 +284,7 @@ const MainApp: React.FC = () => {
             moduleIds: issueData.moduleIds || [],
             labelIds: issueData.labelIds || [],
             projectId: activeProject.id,
-            sprintId: issueData.sprintId || (selectedSprintId || undefined),
+            sprintId: issueData.sprintId || (selectedSprintIds.length === 1 ? selectedSprintIds[0] : undefined),
             storyPoints: issueData.storyPoints,
             parentId: issueData.parentId,
             createdAt: new Date().toISOString(),
@@ -289,13 +304,14 @@ const MainApp: React.FC = () => {
     };
 
     const clearAllFilters = () => {
-        setSelectedSprintId(null);
-        setSelectedModuleId(null);
-        setSelectedLabelId(null);
-        setSelectedIssueType(null);
+        setSelectedSprintIds([]);
+        setSelectedModuleIds([]);
+        setSelectedLabelIds([]);
+        setSelectedIssueTypes([]);
+        setTempFilters({ sprints: [], modules: [], labels: [], types: [] });
     };
 
-    const isFiltered = selectedSprintId || selectedModuleId || selectedLabelId || selectedIssueType;
+    const isFiltered = selectedSprintIds.length > 0 || selectedModuleIds.length > 0 || selectedLabelIds.length > 0 || selectedIssueTypes.length > 0;
 
     const handleDeleteProject = (projectId: string) => {
         setProjects(prev => prev.filter(p => p.id !== projectId));
@@ -408,74 +424,157 @@ const MainApp: React.FC = () => {
                         {activeProject && (activeTab === 'issues' || activeTab === 'planning') && (
                             <div className="relative">
                                 <button
-                                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                                    onClick={() => {
+                                        setTempFilters({
+                                            sprints: selectedSprintIds,
+                                            modules: selectedModuleIds,
+                                            labels: selectedLabelIds,
+                                            types: selectedIssueTypes
+                                        });
+                                        setFilterView('categories');
+                                        setShowFilterModal(true);
+                                    }}
                                     className={`p-2 rounded-lg border transition-all ${isFiltered ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400' : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
                                 >
                                     <Filter className="h-4 w-4" />
                                 </button>
-                                {showFilterDropdown && (
+
+                                {showFilterModal && (
                                     <>
-                                        <div className="fixed inset-0 z-40" onClick={() => setShowFilterDropdown(false)} />
-                                        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-2xl z-50 p-4 space-y-4 animate-in fade-in zoom-in duration-150">
-                                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Quick Filters</h4>
-
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="text-[10px] text-gray-400 mb-1 block">Sprint</label>
-                                                    <select
-                                                        value={selectedSprintId || ''}
-                                                        onChange={(e) => setSelectedSprintId(e.target.value || null)}
-                                                        className="w-full text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded p-1.5 outline-none dark:text-white"
-                                                    >
-                                                        <option value="">All Sprints</option>
-                                                        {sprints.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                                    </select>
+                                        <div className="fixed inset-0 z-[100] bg-black/20 dark:bg-black/40 backdrop-blur-[2px] cursor-pointer" onClick={() => setShowFilterModal(false)} />
+                                        <div className="fixed top-20 right-8 w-80 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-[32px] shadow-2xl z-[101] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+                                            {/* Modal Header */}
+                                            <div className="p-6 pb-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    {filterView !== 'categories' && (
+                                                        <button
+                                                            onClick={() => setFilterView('categories')}
+                                                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                                                        >
+                                                            <ArrowLeft className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                                                        </button>
+                                                    )}
+                                                    <div>
+                                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                            {filterView === 'categories' ? 'Filter Settings' :
+                                                                filterView === 'sprints' ? 'Sprints' :
+                                                                    filterView === 'modules' ? 'Modules' :
+                                                                        filterView === 'labels' ? 'Labels' : 'Issue Types'}
+                                                        </h3>
+                                                        <p className="text-[11px] text-gray-500 dark:text-slate-500">
+                                                            {filterView === 'categories' ? 'Select a category to refine results' : 'Select options to filter issues'}
+                                                        </p>
+                                                    </div>
                                                 </div>
-
-                                                <div>
-                                                    <label className="text-[10px] text-gray-400 mb-1 block">Module</label>
-                                                    <select
-                                                        value={selectedModuleId || ''}
-                                                        onChange={(e) => setSelectedModuleId(e.target.value || null)}
-                                                        className="w-full text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded p-1.5 outline-none dark:text-white"
-                                                    >
-                                                        <option value="">All Modules</option>
-                                                        {activeProject.modules.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[10px] text-gray-400 mb-1 block">Label</label>
-                                                    <select
-                                                        value={selectedLabelId || ''}
-                                                        onChange={(e) => setSelectedLabelId(e.target.value || null)}
-                                                        className="w-full text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded p-1.5 outline-none dark:text-white"
-                                                    >
-                                                        <option value="">All Labels</option>
-                                                        {activeProject.labels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                                    </select>
-                                                </div>
-
-                                                <div>
-                                                    <label className="text-[10px] text-gray-400 mb-1 block">Issue Type</label>
-                                                    <select
-                                                        value={selectedIssueType || ''}
-                                                        onChange={(e) => setSelectedIssueType(e.target.value as IssueType || null)}
-                                                        className="w-full text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded p-1.5 outline-none dark:text-white"
-                                                    >
-                                                        <option value="">All Types</option>
-                                                        <option value="ISSUE">Issue</option>
-                                                        <option value="TASK">Task</option>
-                                                        <option value="FEATURE">Feature</option>
-                                                    </select>
-                                                </div>
+                                                <button onClick={() => setShowFilterModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-2xl transition-colors">
+                                                    <X className="h-4 w-4 text-gray-400" />
+                                                </button>
                                             </div>
 
-                                            <button
-                                                onClick={clearAllFilters}
-                                                className="w-full text-center py-2 text-[10px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                            >
-                                                Reset Filters
-                                            </button>
+                                            {/* Modal Content */}
+                                            <div className="p-4 flex-1 min-h-[300px] max-h-[450px] overflow-y-auto custom-scrollbar">
+                                                {filterView === 'categories' ? (
+                                                    <div className="space-y-2">
+                                                        {[
+                                                            { id: 'sprints', label: 'Sprints', icon: Target, count: tempFilters.sprints.length },
+                                                            { id: 'modules', label: 'Modules', icon: Layers, count: tempFilters.modules.length },
+                                                            { id: 'labels', label: 'Labels', icon: Tag, count: tempFilters.labels.length },
+                                                            { id: 'types', label: 'Issue Types', icon: AlertCircle, count: tempFilters.types.length }
+                                                        ].map(cat => (
+                                                            <button
+                                                                key={cat.id}
+                                                                onClick={() => setFilterView(cat.id as any)}
+                                                                className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-800 border border-gray-100/50 dark:border-slate-800/50 rounded-[22px] transition-all group shadow-sm hover:shadow-md"
+                                                            >
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="h-10 w-10 rounded-[14px] bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                                        <cat.icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                                                    </div>
+                                                                    <div className="text-left">
+                                                                        <span className="text-sm font-bold text-gray-800 dark:text-slate-200">{cat.label}</span>
+                                                                        {cat.count > 0 && <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">{cat.count} selected</p>}
+                                                                    </div>
+                                                                </div>
+                                                                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-indigo-500 transition-colors" />
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-1">
+                                                        {/* Drill-down items */}
+                                                        {filterView === 'sprints' && sprints.map(s => (
+                                                            <DrillDownItem
+                                                                key={s.id}
+                                                                label={s.name}
+                                                                checked={tempFilters.sprints.includes(s.id)}
+                                                                onChange={(checked) => {
+                                                                    const next = checked ? [...tempFilters.sprints, s.id] : tempFilters.sprints.filter(id => id !== s.id);
+                                                                    setTempFilters(prev => ({ ...prev, sprints: next }));
+                                                                }}
+                                                            />
+                                                        ))}
+                                                        {filterView === 'modules' && activeProject.modules.map(m => (
+                                                            <DrillDownItem
+                                                                key={m.id}
+                                                                label={m.name}
+                                                                checked={tempFilters.modules.includes(m.id)}
+                                                                onChange={(checked) => {
+                                                                    const next = checked ? [...tempFilters.modules, m.id] : tempFilters.modules.filter(id => id !== m.id);
+                                                                    setTempFilters(prev => ({ ...prev, modules: next }));
+                                                                }}
+                                                            />
+                                                        ))}
+                                                        {filterView === 'labels' && activeProject.labels.map(l => (
+                                                            <DrillDownItem
+                                                                key={l.id}
+                                                                label={l.name}
+                                                                checked={tempFilters.labels.includes(l.id)}
+                                                                onChange={(checked) => {
+                                                                    const next = checked ? [...tempFilters.labels, l.id] : tempFilters.labels.filter(id => id !== l.id);
+                                                                    setTempFilters(prev => ({ ...prev, labels: next }));
+                                                                }}
+                                                            />
+                                                        ))}
+                                                        {filterView === 'types' && ['ISSUE', 'TASK', 'FEATURE'].map(type => (
+                                                            <DrillDownItem
+                                                                key={type}
+                                                                label={type.toLowerCase()}
+                                                                className="capitalize"
+                                                                checked={tempFilters.types.includes(type as IssueType)}
+                                                                onChange={(checked) => {
+                                                                    const next = checked ? [...tempFilters.types, type as IssueType] : tempFilters.types.filter(t => t !== type);
+                                                                    setTempFilters(prev => ({ ...prev, types: next as IssueType[] }));
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Modal Footer */}
+                                            <div className="p-6 bg-gray-50/50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-800 flex items-center gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        setTempFilters({ sprints: [], modules: [], labels: [], types: [] });
+                                                        setFilterView('categories');
+                                                    }}
+                                                    className="flex-1 py-3 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-[20px] transition-all"
+                                                >
+                                                    Clear All
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSprintIds(tempFilters.sprints);
+                                                        setSelectedModuleIds(tempFilters.modules);
+                                                        setSelectedLabelIds(tempFilters.labels);
+                                                        setSelectedIssueTypes(tempFilters.types);
+                                                        setShowFilterModal(false);
+                                                    }}
+                                                    className="flex-[1.5] py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[20px] shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                                >
+                                                    Apply Filters
+                                                </button>
+                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -509,7 +608,7 @@ const MainApp: React.FC = () => {
                         {activeProject && (
                             <button
                                 onClick={() => { setSelectedIssue(null); setIsIssueModalOpen(true); }}
-                                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm"
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm"
                             >
                                 <Plus className="h-4 w-4" />
                                 <span className="hidden sm:inline">Create</span>
@@ -630,6 +729,7 @@ const MainApp: React.FC = () => {
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Key</th>
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Title</th>
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest text-center">Sprint</th>
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Module</th>
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Status</th>
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Priority</th>
                                                     <th className="px-4 py-3 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest text-right">Assignee</th>
@@ -660,6 +760,22 @@ const MainApp: React.FC = () => {
                                                             <span className="text-[10px] text-gray-500 dark:text-slate-400">
                                                                 {sprints.find(s => s.id === issue.sprintId)?.name || '-'}
                                                             </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {issue.moduleIds.length > 0 ? (
+                                                                    issue.moduleIds.map(mId => {
+                                                                        const module = activeProject.modules.find(m => m.id === mId);
+                                                                        return module ? (
+                                                                            <span key={mId} className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-[9px] font-bold text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
+                                                                                {module.name}
+                                                                            </span>
+                                                                        ) : null;
+                                                                    })
+                                                                ) : (
+                                                                    <span className="text-[10px] text-gray-400 dark:text-slate-600 italic">None</span>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: activeProject.statuses.find(s => s.id === issue.statusId)?.color + '20', color: activeProject.statuses.find(s => s.id === issue.statusId)?.color }}>
@@ -722,7 +838,7 @@ const MainApp: React.FC = () => {
             {
                 showNotifications && (
                     <>
-                        <div className="fixed inset-0 z-[60]" onClick={() => setShowNotifications(false)} />
+                        <div className="fixed inset-0 z-[60] cursor-pointer" onClick={() => setShowNotifications(false)} />
                         <div className="fixed right-6 top-16 w-80 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[400px]">
                             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50 dark:bg-slate-900/50">
                                 <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Notifications</h3>
@@ -755,9 +871,27 @@ const MainApp: React.FC = () => {
                 onClose={() => setIsProfileSettingsOpen(false)}
                 user={user as User}
                 initialTab={profileSettingsTab as any}
+                isDarkMode={isDarkMode}
+                onThemeChange={(theme: 'light' | 'dark') => setIsDarkMode(theme === 'dark')}
+                notificationsEnabled={notificationsEnabled}
+                onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
             />
         </div>
     );
 };
+
+const DrillDownItem: React.FC<{ label: string; checked: boolean; onChange: (checked: boolean) => void; className?: string }> = ({ label, checked, onChange, className }) => (
+    <label className={`flex items-center justify-between p-3.5 bg-gray-50/50 dark:bg-slate-950/30 hover:bg-white dark:hover:bg-slate-800 border border-gray-100/50 dark:border-slate-800/50 rounded-2xl cursor-pointer group transition-all ${className}`}>
+        <span className="text-xs font-bold text-gray-700 dark:text-slate-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors capitalize">{label}</span>
+        <div className="relative inline-flex items-center">
+            <input
+                type="checkbox"
+                checked={checked}
+                onChange={(e) => onChange(e.target.checked)}
+                className="rounded border-gray-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-transparent h-4 w-4 transition-all"
+            />
+        </div>
+    </label>
+);
 
 export default MainApp;

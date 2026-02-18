@@ -173,7 +173,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           e.stopPropagation();
                           setActiveMenuId(activeMenuId === project.id ? null : project.id);
                         }}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-gray-400 hover:text-indigo-600 transition-colors"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </button>
@@ -255,7 +255,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-slate-400">Define your project identity.</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors">
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full text-gray-400 hover:text-indigo-600 transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -391,7 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl font-semibold transition-all"
+                  className="flex-1 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-semibold transition-all"
                 >
                   Cancel
                 </button>
@@ -422,7 +422,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl font-semibold transition-all"
+                className="flex-1 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl font-semibold transition-all"
               >
                 Cancel
               </button>
@@ -431,7 +431,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   onDeleteProject(showDeleteConfirm);
                   setShowDeleteConfirm(null);
                 }}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all shadow-sm"
+                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-sm"
               >
                 Delete
               </button>
