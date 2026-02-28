@@ -1,5 +1,5 @@
 
-import { Priority, IssueType, Status, Label, Module, User } from './types';
+import { Priority, IssueType, Status, Label, Module, User, Project } from './types';
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
   LOW: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -45,4 +45,33 @@ export const MOCK_MODULES: Module[] = [
   { id: 'm1', name: 'Auth Service', description: 'Authentication and user sessions' },
   { id: 'm2', name: 'Payment Gateway', description: 'Stripe integration' },
   { id: 'm3', name: 'Analytics', description: 'Reporting engine' },
+];
+
+export const MOCK_PROJECTS: Project[] = [
+  {
+    id: 'p1',
+    key: 'ALT',
+    name: 'TheAlterTrack',
+    description: 'The ultimate project tracking tool for modern teams.',
+    logo: '🚀',
+    visibility: 'PUBLIC',
+    platform: 'DESKTOP',
+    statuses: DEFAULT_STATUSES,
+    modules: MOCK_MODULES,
+    labels: MOCK_LABELS,
+    members: [{ userId: 'u1', role: 'OWNER' }]
+  },
+  {
+    id: 'p2',
+    key: 'PROJ',
+    name: 'Sample Project',
+    description: 'A sample project to demonstrate the navigation.',
+    logo: '📁',
+    visibility: 'PUBLIC',
+    platform: 'DESKTOP',
+    statuses: DEFAULT_STATUSES,
+    modules: [],
+    labels: [],
+    members: [{ userId: 'u1', role: 'OWNER' }]
+  }
 ];

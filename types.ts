@@ -2,7 +2,7 @@
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type IssueType = 'ISSUE' | 'TASK' | 'FEATURE';
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
-export type ProjectPlatform = 'WEBSITE' | 'MOBILE';
+export type ProjectPlatform = 'DESKTOP' | 'MOBILE';
 
 export interface User {
   id: string;
@@ -132,3 +132,38 @@ export interface StickyNote {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface NavPreferences {
+  personalItems: {
+    stickies: boolean;
+    drafts: boolean;
+    yourWork: boolean;
+  };
+  workspaceItems: {
+    views: boolean;
+    dashboards: boolean;
+    analytics: boolean;
+    archives: boolean;
+  };
+  navigationMode: 'accordion' | 'tabbed';
+  showLimitedProjects: boolean;
+  projectLimit: number;
+}
+
+export const DEFAULT_NAV_PREFERENCES: NavPreferences = {
+  personalItems: {
+    stickies: true,
+    drafts: true,
+    yourWork: true,
+  },
+  workspaceItems: {
+    views: false,
+    dashboards: false,
+    analytics: false,
+    archives: false,
+  },
+  navigationMode: 'accordion',
+  showLimitedProjects: true,
+  projectLimit: 10,
+};
+
