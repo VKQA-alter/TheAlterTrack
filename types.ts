@@ -132,3 +132,38 @@ export interface StickyNote {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface NavPreferences {
+  personalItems: {
+    stickies: boolean;
+    drafts: boolean;
+    yourWork: boolean;
+  };
+  workspaceItems: {
+    views: boolean;
+    dashboards: boolean;
+    analytics: boolean;
+    archives: boolean;
+  };
+  navigationMode: 'accordion' | 'tabbed';
+  showLimitedProjects: boolean;
+  projectLimit: number;
+}
+
+export const DEFAULT_NAV_PREFERENCES: NavPreferences = {
+  personalItems: {
+    stickies: true,
+    drafts: true,
+    yourWork: true,
+  },
+  workspaceItems: {
+    views: false,
+    dashboards: false,
+    analytics: false,
+    archives: false,
+  },
+  navigationMode: 'accordion',
+  showLimitedProjects: true,
+  projectLimit: 10,
+};
+

@@ -59,9 +59,7 @@ const StickyNotes: React.FC<StickyNotesProps> = ({ notes, onCreate, onUpdate, on
                     >
                         Create first sticky
                     </button>
-                    <button className="px-6 py-2.5 bg-transparent text-gray-400 dark:text-slate-500 font-bold rounded-lg border border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-900 transition-all flex items-center gap-2">
-                        Documentation
-                    </button>
+
                 </div>
             </div>
         );
