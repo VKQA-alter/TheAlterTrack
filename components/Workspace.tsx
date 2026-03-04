@@ -20,21 +20,40 @@ import { Project, Role, ProjectPlatform } from '../types';
 interface WorkspaceProps {
     projects: Project[];
     onSelectProject: (id: string) => void;
-    onGoToSettings: (projectId: string) => void;
+    onGoToSettings: (id: string) => void;
     onCreateProject: () => void;
     currentUserId: string;
     onJoinProject: (projectId: string) => void;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+    sortField: 'manual' | 'name' | 'created_at' | 'members';
+    setSortField: (field: 'manual' | 'name' | 'created_at' | 'members') => void;
+    sortOrder: 'asc' | 'desc';
+    setSortOrder: (order: 'asc' | 'desc') => void;
+    showFilterModal: boolean;
+    setShowFilterModal: (show: boolean) => void;
 }
 
 type SortField = 'manual' | 'name' | 'created_at' | 'members';
 type SortOrder = 'asc' | 'desc';
 
-const Workspace: React.FC<WorkspaceProps> = ({ projects, onSelectProject, onGoToSettings, onCreateProject, currentUserId, onJoinProject }) => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortField, setSortField] = useState<SortField>('created_at');
-    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+const Workspace: React.FC<WorkspaceProps> = ({
+    projects,
+    onSelectProject,
+    onGoToSettings,
+    onCreateProject,
+    currentUserId,
+    onJoinProject,
+    searchQuery,
+    setSearchQuery,
+    sortField,
+    setSortField,
+    sortOrder,
+    setSortOrder,
+    showFilterModal,
+    setShowFilterModal
+}) => {
     const [showSortDropdown, setShowSortDropdown] = useState(false);
-    const [showFilterModal, setShowFilterModal] = useState(false);
     const [projectToJoin, setProjectToJoin] = useState<Project | null>(null);
     const [filterExpanded, setFilterExpanded] = useState<Record<string, boolean>>({
         access: true,
@@ -89,87 +108,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ projects, onSelectProject, onGoTo
     ];
 
     return (
-        <div className="p-4 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
-            {/* Toolbar */}
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800/50">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl shadow-sm">
-                        <UserIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Projects</h2>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="relative group flex items-center">
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="bg-transparent text-gray-900 dark:text-white outline-none pl-10 pr-4 py-2 w-0 group-focus-within:w-48 lg:group-focus-within:w-64 transition-all duration-300 border-b border-transparent focus:border-indigo-500"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Search className="absolute left-2 h-5 w-5 text-gray-400 cursor-pointer" />
-                    </div>
-
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowSortDropdown(!showSortDropdown)}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#1c1d1e] rounded-xl text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-[#2c2d2e] transition-all border border-transparent dark:border-slate-800 shadow-sm"
-                        >
-                            <ArrowUpDown className="h-4 w-4 text-gray-400" />
-                            <span>{sortLabels[sortField]}</span>
-                        </button>
-
-                        {showSortDropdown && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowSortDropdown(false)} />
-                                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1c1d1e] border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl z-20 py-2 animate-in fade-in zoom-in duration-150 ring-1 ring-black/5">
-                                    {(['manual', 'name', 'created_at', 'members'] as SortField[]).map(field => (
-                                        <button
-                                            key={field}
-                                            onClick={() => { setSortField(field); setShowSortDropdown(false); }}
-                                            className="w-full text-left px-5 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
-                                        >
-                                            {sortLabels[field]}
-                                            {sortField === field && <Check className="h-4 w-4 text-indigo-500" />}
-                                        </button>
-                                    ))}
-                                    <div className="h-px bg-gray-100 dark:bg-slate-800 my-2" />
-                                    <button
-                                        onClick={() => setSortOrder('asc')}
-                                        className="w-full text-left px-5 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
-                                    >
-                                        Ascending
-                                        {sortOrder === 'asc' && <Check className="h-4 w-4 text-indigo-500" />}
-                                    </button>
-                                    <button
-                                        onClick={() => setSortOrder('desc')}
-                                        className="w-full text-left px-5 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
-                                    >
-                                        Descending
-                                        {sortOrder === 'desc' && <Check className="h-4 w-4 text-indigo-500" />}
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => setShowFilterModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#1c1d1e] rounded-xl text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-[#2c2d2e] transition-all border border-transparent dark:border-slate-800 shadow-sm"
-                    >
-                        <Filter className="h-4 w-4 text-gray-400" />
-                        Filters
-                    </button>
-
-                    <button
-                        onClick={onCreateProject}
-                        className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-black shadow-lg shadow-sky-500/20 transition-all active:scale-95"
-                    >
-                        Add Project
-                    </button>
-                </div>
-            </div>
+        <div className="p-8 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
+            {/* Grid */}
 
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

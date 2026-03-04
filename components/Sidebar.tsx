@@ -15,7 +15,8 @@ import {
   LayoutGrid,
   Layers,
   FileText,
-  ChevronRight
+  ChevronRight,
+  ArrowUpDown
 } from 'lucide-react';
 import { Project, NavPreferences } from '../types';
 
@@ -216,8 +217,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {expandedProjects.has(project.id) && !isCollapsed && (
                       <div className="ml-9 border-l border-gray-100 dark:border-slate-800/50 space-y-1 py-1">
                         <NestedItem label="Work items" icon={<Boxes className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('issues'); }} />
-                        <NestedItem label="Cycles" icon={<Disc className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('planning'); }} />
-                        <NestedItem label="Modules" icon={<LayoutGrid className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('planning'); }} />
+                        <NestedItem label="Backlog" icon={<Disc className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('backlog'); }} />
+                        <NestedItem label="Sprints" icon={<ArrowUpDown className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('planning'); }} />
                         <NestedItem label="Views" icon={<Layers className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('issues'); }} />
                         <NestedItem label="Pages" icon={<FileText className="h-4 w-4" />} onClick={() => { onSelectProject(project.id); onTabChange('backlog'); }} />
                       </div>

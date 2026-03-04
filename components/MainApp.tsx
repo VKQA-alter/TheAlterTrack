@@ -11,7 +11,7 @@ import {
     LayoutList,
     ChevronDown,
     AlertTriangle,
-    Check,
+    Check, Briefcase, Columns, TableProperties,
     X,
     Moon,
     Sun,
@@ -29,8 +29,6 @@ import {
     PenLine,
     User as UserIcon,
     PanelLeft,
-    Columns,
-    TableProperties,
 } from 'lucide-react';
 import { Project, Issue, User, Sprint, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote, ProjectPlatform } from '../types';
 import { MOCK_USERS, DEFAULT_STATUSES, MOCK_LABELS, MOCK_MODULES, MOCK_PROJECTS } from '../constants';
@@ -99,6 +97,13 @@ const MainApp: React.FC = () => {
     const [isNavCustomizationOpen, setIsNavCustomizationOpen] = useState(false);
     const [navPreferences, setNavPreferences] = useState<NavPreferences>(DEFAULT_NAV_PREFERENCES);
     const [isCollapsed, setIsCollapsed] = useState(false);
+
+    // Projects Page Lifted State
+    const [projectSearchQuery, setProjectSearchQuery] = useState('');
+    const [projectSortField, setProjectSortField] = useState<'manual' | 'name' | 'created_at' | 'members'>('created_at');
+    const [projectSortOrder, setProjectSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [showProjectSortDropdown, setShowProjectSortDropdown] = useState(false);
+    const [showProjectFilterModal, setShowProjectFilterModal] = useState(false);
 
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -557,270 +562,359 @@ const MainApp: React.FC = () => {
 
                     <main className="flex-1 overflow-auto custom-scrollbar transition-colors">
                         {/* Page Header - Consistent across all screens */}
-                        {activeTab !== 'workspace' && (
-                            <div className="px-4 py-4 border-b border-gray-50 dark:border-slate-800/50 bg-[#fafafa]/50 dark:bg-[#0c0d0e]/50 backdrop-blur-sm">
-                                <div className="max-w-10xl mx-auto flex items-left justify-between">
-                                    <div className="flex items-center gap-3">
-                                        {activeTab === 'home' && <HomeIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
-                                        {activeTab === 'stickies' && <StickyIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
-                                        {activeTab === 'drafts' && <PenLine className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
-                                        {activeTab === 'your-work' && <UserIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
-                                        {!activeProject && !(['home', 'stickies', 'workspace', 'drafts', 'your-work'] as string[]).includes(activeTab) && <LayoutDashboard className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
-                                        {activeProject && <div className="text-2xl leading-none">{activeProject.logo || '📁'}</div>}
+                        <div className="px-4 py-4 border-b border-gray-50 dark:border-slate-800/50 bg-[#fafafa]/50 dark:bg-[#0c0d0e]/50 backdrop-blur-sm">
+                            <div className="max-w-10xl mx-auto flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {activeTab === 'workspace' && <Briefcase className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {activeTab === 'home' && <HomeIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {activeTab === 'stickies' && <StickyIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {activeTab === 'drafts' && <PenLine className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {activeTab === 'your-work' && <UserIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {!activeProject && !(['home', 'stickies', 'workspace', 'drafts', 'your-work'] as string[]).includes(activeTab) && <LayoutDashboard className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+                                    {activeProject && <div className="text-2xl leading-none">{activeProject.logo || '📁'}</div>}
 
-                                        <h1 className="text-[14px] font-bold text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                                            {activeProject ? (
-                                                <>
-                                                    <span className="text-gray-400 font-medium lowercase">projects /</span>
-                                                    <span>{activeProject.name}</span>
-                                                    {activeTab === 'issues' && (
-                                                        <>
-                                                            <span className="text-gray-400 font-medium mx-1">/</span>
-                                                            <span className="text-indigo-600 dark:text-indigo-400">Work Items</span>
-                                                        </>
-                                                    )}
-                                                </>
-                                            ) : (() => {
-                                                switch (activeTab) {
-                                                    case 'home': return 'Home';
-                                                    case 'stickies': return 'Sticky Notes';
-                                                    case 'drafts': return 'Drafts';
-                                                    case 'your-work': return 'Your work';
-                                                    default: return 'Dashboard';
-                                                }
-                                            })()}
-                                        </h1>
-                                    </div>
+                                    <h1 className="text-[14px] font-bold text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                                        {activeProject ? (
+                                            <>
+                                                <span className="text-gray-400 font-medium lowercase">projects /</span>
+                                                <span>{activeProject.name}</span>
+                                                {activeTab === 'issues' && (
+                                                    <>
+                                                        <span className="text-gray-400 font-medium mx-1">/</span>
+                                                        <span className="text-indigo-600 dark:text-indigo-400">Work Items</span>
+                                                    </>
+                                                )}
+                                            </>
+                                        ) : (() => {
+                                            switch (activeTab) {
+                                                case 'home': return 'Home';
+                                                case 'workspace': return 'Projects';
+                                                case 'stickies': return 'Sticky Notes';
+                                                case 'drafts': return 'Drafts';
+                                                case 'your-work': return 'Your work';
+                                                default: return 'Dashboard';
+                                            }
+                                        })()}
+                                    </h1>
+                                </div>
 
-                                    <div className="flex items-center gap-4">
-                                        {activeProject && activeTab === 'issues' && (
-                                            <div className="flex items-center bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-gray-200 dark:border-slate-700/50">
-                                                <button
-                                                    onClick={() => setActiveView('kanban')}
-                                                    className={`p-1.5 rounded-lg transition-all ${activeView === 'kanban' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                    title="Kanban Board"
-                                                >
-                                                    <Columns className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setActiveView('list')}
-                                                    className={`p-1.5 rounded-lg transition-all ${activeView === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                    title="List View"
-                                                >
-                                                    <LayoutList className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setActiveView('table')}
-                                                    className={`p-1.5 rounded-lg transition-all ${activeView === 'table' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                    title="Table View"
-                                                >
-                                                    <TableProperties className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setActiveView('calendar')}
-                                                    className={`p-1.5 rounded-lg transition-all ${activeView === 'calendar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                    title="Calendar View"
-                                                >
-                                                    <Calendar className="h-4 w-4" />
-                                                </button>
+                                <div className="flex items-center gap-4">
+                                    {activeTab === 'workspace' && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative group flex items-center">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search projects..."
+                                                    className="bg-transparent text-gray-900 dark:text-white outline-none pl-10 pr-4 py-2 w-0 group-focus-within:w-48 lg:group-focus-within:w-64 transition-all duration-300 border-b border-transparent focus:border-indigo-500 text-sm"
+                                                    value={projectSearchQuery}
+                                                    onChange={(e) => setProjectSearchQuery(e.target.value)}
+                                                />
+                                                <Search className="absolute left-2 h-4.5 w-4.5 text-gray-400 cursor-pointer" />
                                             </div>
-                                        )}
-                                        {activeProject && (activeTab === 'issues' || activeTab === 'planning') && (
+
                                             <div className="relative">
                                                 <button
-                                                    onClick={() => {
-                                                        setTempFilters({
-                                                            sprints: selectedSprintIds,
-                                                            modules: selectedModuleIds,
-                                                            labels: selectedLabelIds,
-                                                            types: selectedIssueTypes
-                                                        });
-                                                        setFilterView('categories');
-                                                        setShowFilterModal(true);
-                                                    }}
-                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-sm font-medium ${isFiltered ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400' : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                                    onClick={() => setShowProjectSortDropdown(!showProjectSortDropdown)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-[#1c1d1e] rounded-xl text-xs font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-[#2c2d2e] transition-all border border-transparent dark:border-slate-800 shadow-sm"
                                                 >
-                                                    <Filter className="h-4 w-4" />
-                                                    Filter
+                                                    <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                                                    <span>
+                                                        {projectSortField === 'manual' ? 'Manual' :
+                                                            projectSortField === 'name' ? 'Name' :
+                                                                projectSortField === 'created_at' ? 'Created date' : 'Members'}
+                                                    </span>
                                                 </button>
 
-                                                {showFilterModal && (
+                                                {showProjectSortDropdown && (
                                                     <>
-                                                        <div className="fixed inset-0 z-[100] bg-black/20 dark:bg-black/40 backdrop-blur-[2px] cursor-pointer" onClick={() => setShowFilterModal(false)} />
-                                                        <div className="fixed top-40 right-8 w-80 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-[32px] shadow-2xl z-[101] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-                                                            {/* Modal Header */}
-                                                            <div className="p-6 pb-4 flex items-center justify-between border-b border-gray-50 dark:border-slate-800/50">
-                                                                <div className="flex items-center gap-3">
-                                                                    {filterView !== 'categories' && (
-                                                                        <button
-                                                                            onClick={() => setFilterView('categories')}
-                                                                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                                                                        >
-                                                                            <ArrowLeft className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-                                                                        </button>
-                                                                    )}
-                                                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                                                        {filterView === 'categories' ? 'Filter Settings' :
-                                                                            filterView === 'sprints' ? 'Sprint Filter' :
-                                                                                filterView === 'modules' ? 'Module Filter' :
-                                                                                    filterView === 'labels' ? 'Label Filter' : 'Type Filter'}
-                                                                    </h3>
-                                                                </div>
+                                                        <div className="fixed inset-0 z-10" onClick={() => setShowProjectSortDropdown(false)} />
+                                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1c1d1e] border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl z-20 py-2 animate-in fade-in zoom-in duration-150 ring-1 ring-black/5">
+                                                            {(['manual', 'name', 'created_at', 'members'] as const).map(field => (
                                                                 <button
-                                                                    onClick={() => setShowFilterModal(false)}
-                                                                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                                                                    key={field}
+                                                                    onClick={() => { setProjectSortField(field); setShowProjectSortDropdown(false); }}
+                                                                    className="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
                                                                 >
-                                                                    <X className="h-5 w-5" />
+                                                                    <span>
+                                                                        {field === 'created_at' ? 'Created date' :
+                                                                            field.charAt(0).toUpperCase() + field.slice(1)}
+                                                                    </span>
+                                                                    {projectSortField === field && <Check className="h-3.5 w-3.5 text-indigo-500" />}
                                                                 </button>
-                                                            </div>
-
-                                                            {/* Modal Body */}
-                                                            <div className="flex-1 overflow-y-auto p-4 space-y-2 max-h-[360px] custom-scrollbar">
-                                                                {filterView === 'categories' && (
-                                                                    <>
-                                                                        {[
-                                                                            { id: 'sprints', label: 'Sprints', count: tempFilters.sprints.length, icon: <ArrowUpDown className="h-4 w-4" /> },
-                                                                            { id: 'modules', label: 'Modules', count: tempFilters.modules.length, icon: <LayoutDashboard className="h-4 w-4" /> },
-                                                                            { id: 'labels', label: 'Labels', count: tempFilters.labels.length, icon: <Tag className="h-4 w-4" /> },
-                                                                            { id: 'types', label: 'Types', count: tempFilters.types.length, icon: <Layers className="h-4 w-4" /> },
-                                                                        ].map(cat => (
-                                                                            <button
-                                                                                key={cat.id}
-                                                                                onClick={() => setFilterView(cat.id as any)}
-                                                                                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all group"
-                                                                            >
-                                                                                <div className="flex items-center gap-3">
-                                                                                    <span className="text-gray-400 dark:text-slate-500 group-hover:text-indigo-500 transition-colors">{cat.icon}</span>
-                                                                                    <span className="text-sm font-bold text-gray-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{cat.label}</span>
-                                                                                </div>
-                                                                                <div className="flex items-center gap-2">
-                                                                                    {cat.count > 0 && (
-                                                                                        <span className="text-[10px] font-black bg-indigo-500 text-white px-2 py-0.5 rounded-full">{cat.count}</span>
-                                                                                    )}
-                                                                                    <ChevronRight className="h-4 w-4 text-gray-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" />
-                                                                                </div>
-                                                                            </button>
-                                                                        ))}
-                                                                    </>
-                                                                )}
-
-                                                                {filterView === 'sprints' && sprints.map(s => (
-                                                                    <label key={s.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={tempFilters.sprints.includes(s.id)}
-                                                                            onChange={(e) => setTempFilters(prev => ({
-                                                                                ...prev,
-                                                                                sprints: e.target.checked
-                                                                                    ? [...prev.sprints, s.id]
-                                                                                    : prev.sprints.filter(id => id !== s.id)
-                                                                            }))}
-                                                                            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
-                                                                        />
-                                                                        <div className="flex items-center gap-2 min-w-0">
-                                                                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${s.isActive ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-slate-600'}`} />
-                                                                            <span className="text-sm font-medium text-gray-700 dark:text-slate-300 truncate">{s.name}</span>
-                                                                        </div>
-                                                                    </label>
-                                                                ))}
-
-                                                                {filterView === 'modules' && (activeProject?.modules.length ?? 0) === 0 && (
-                                                                    <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-8">No modules configured for this project.</p>
-                                                                )}
-                                                                {filterView === 'modules' && activeProject?.modules.map(m => (
-                                                                    <label key={m.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={tempFilters.modules.includes(m.id)}
-                                                                            onChange={(e) => setTempFilters(prev => ({
-                                                                                ...prev,
-                                                                                modules: e.target.checked
-                                                                                    ? [...prev.modules, m.id]
-                                                                                    : prev.modules.filter(id => id !== m.id)
-                                                                            }))}
-                                                                            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
-                                                                        />
-                                                                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{m.name}</span>
-                                                                    </label>
-                                                                ))}
-
-                                                                {filterView === 'labels' && (activeProject?.labels.length ?? 0) === 0 && (
-                                                                    <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-8">No labels configured for this project.</p>
-                                                                )}
-                                                                {filterView === 'labels' && activeProject?.labels.map(l => (
-                                                                    <label key={l.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={tempFilters.labels.includes(l.id)}
-                                                                            onChange={(e) => setTempFilters(prev => ({
-                                                                                ...prev,
-                                                                                labels: e.target.checked
-                                                                                    ? [...prev.labels, l.id]
-                                                                                    : prev.labels.filter(id => id !== l.id)
-                                                                            }))}
-                                                                            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
-                                                                        />
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: l.color }} />
-                                                                            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{l.name}</span>
-                                                                        </div>
-                                                                    </label>
-                                                                ))}
-
-                                                                {filterView === 'types' && (['ISSUE', 'TASK', 'FEATURE'] as IssueType[]).map(type => (
-                                                                    <label key={type} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={tempFilters.types.includes(type)}
-                                                                            onChange={(e) => setTempFilters(prev => ({
-                                                                                ...prev,
-                                                                                types: e.target.checked
-                                                                                    ? [...prev.types, type]
-                                                                                    : prev.types.filter(t => t !== type)
-                                                                            }))}
-                                                                            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
-                                                                        />
-                                                                        <span className={`text-sm font-bold ${type === 'ISSUE' ? 'text-red-500' : type === 'TASK' ? 'text-blue-500' : 'text-purple-500'}`}>{type}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-
-                                                            {/* Modal Footer */}
-                                                            <div className="p-4 border-t border-gray-50 dark:border-slate-800/50 flex gap-2">
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setTempFilters({ sprints: [], modules: [], labels: [], types: [] });
-                                                                        clearAllFilters();
-                                                                        setShowFilterModal(false);
-                                                                    }}
-                                                                    className="flex-1 py-2.5 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-2xl transition-all"
-                                                                >
-                                                                    Clear All
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedSprintIds(tempFilters.sprints);
-                                                                        setSelectedModuleIds(tempFilters.modules);
-                                                                        setSelectedLabelIds(tempFilters.labels);
-                                                                        setSelectedIssueTypes(tempFilters.types);
-                                                                        setShowFilterModal(false);
-                                                                    }}
-                                                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-sm active:scale-95"
-                                                                >
-                                                                    Apply Filters
-                                                                </button>
-                                                            </div>
+                                                            ))}
+                                                            <div className="h-px bg-gray-100 dark:bg-slate-800 my-1.5" />
+                                                            <button
+                                                                onClick={() => setProjectSortOrder('asc')}
+                                                                className="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
+                                                            >
+                                                                Ascending
+                                                                {projectSortOrder === 'asc' && <Check className="h-3.5 w-3.5 text-indigo-500" />}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setProjectSortOrder('desc')}
+                                                                className="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-300 font-medium"
+                                                            >
+                                                                Descending
+                                                                {projectSortOrder === 'desc' && <Check className="h-3.5 w-3.5 text-indigo-500" />}
+                                                            </button>
                                                         </div>
                                                     </>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
+
+                                            <button
+                                                onClick={() => setShowProjectFilterModal(true)}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-[#1c1d1e] rounded-xl text-xs font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-[#2c2d2e] transition-all border border-transparent dark:border-slate-800 shadow-sm"
+                                            >
+                                                <Filter className="h-3.5 w-3.5 text-gray-400" />
+                                                Filters
+                                            </button>
+
+                                            <button
+                                                onClick={() => setShowCreateMenu(true)}
+                                                className="flex items-center gap-2 px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                                            >
+                                                Add Project
+                                            </button>
+                                        </div>
+                                    )}
+                                    {activeProject && activeTab === 'issues' && (
+                                        <div className="flex items-center bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-gray-200 dark:border-slate-700/50">
+                                            <button
+                                                onClick={() => setActiveView('kanban')}
+                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'kanban' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                                title="Kanban Board"
+                                            >
+                                                <Columns className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveView('list')}
+                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                                title="List View"
+                                            >
+                                                <LayoutList className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveView('table')}
+                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'table' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                                title="Table View"
+                                            >
+                                                <TableProperties className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveView('calendar')}
+                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'calendar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                                title="Calendar View"
+                                            >
+                                                <Calendar className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    {activeProject && (activeTab === 'issues' || activeTab === 'planning') && (
+                                        <div className="relative flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setTempFilters({
+                                                        sprints: selectedSprintIds,
+                                                        modules: selectedModuleIds,
+                                                        labels: selectedLabelIds,
+                                                        types: selectedIssueTypes
+                                                    });
+                                                    setFilterView('categories');
+                                                    setShowFilterModal(true);
+                                                }}
+                                                className={`p-1.5 rounded-lg border transition-all ${isFiltered ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400' : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                                title="Filter"
+                                            >
+                                                <Filter className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedIssue(null);
+                                                    setIsIssueModalOpen(true);
+                                                }}
+                                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Add Work Item
+                                            </button>
+
+                                            {showFilterModal && (
+                                                <>
+                                                    <div className="fixed inset-0 z-[100] bg-black/20 dark:bg-black/40 backdrop-blur-[2px] cursor-pointer" onClick={() => setShowFilterModal(false)} />
+                                                    <div className="fixed top-40 right-8 w-80 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-[32px] shadow-2xl z-[101] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+                                                        {/* Modal Header */}
+                                                        <div className="p-6 pb-4 flex items-center justify-between border-b border-gray-50 dark:border-slate-800/50">
+                                                            <div className="flex items-center gap-3">
+                                                                {filterView !== 'categories' && (
+                                                                    <button
+                                                                        onClick={() => setFilterView('categories')}
+                                                                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                                                                    >
+                                                                        <ArrowLeft className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                                                                    </button>
+                                                                )}
+                                                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                                    {filterView === 'categories' ? 'Filter Settings' :
+                                                                        filterView === 'sprints' ? 'Sprint Filter' :
+                                                                            filterView === 'modules' ? 'Module Filter' :
+                                                                                filterView === 'labels' ? 'Label Filter' : 'Type Filter'}
+                                                                </h3>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setShowFilterModal(false)}
+                                                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                                                            >
+                                                                <X className="h-5 w-5" />
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Modal Body */}
+                                                        <div className="flex-1 overflow-y-auto p-4 space-y-2 max-h-[360px] custom-scrollbar">
+                                                            {filterView === 'categories' && (
+                                                                <>
+                                                                    {[
+                                                                        { id: 'sprints', label: 'Sprints', count: tempFilters.sprints.length, icon: <ArrowUpDown className="h-4 w-4" /> },
+                                                                        { id: 'modules', label: 'Modules', count: tempFilters.modules.length, icon: <LayoutDashboard className="h-4 w-4" /> },
+                                                                        { id: 'labels', label: 'Labels', count: tempFilters.labels.length, icon: <Tag className="h-4 w-4" /> },
+                                                                        { id: 'types', label: 'Types', count: tempFilters.types.length, icon: <Layers className="h-4 w-4" /> },
+                                                                    ].map(cat => (
+                                                                        <button
+                                                                            key={cat.id}
+                                                                            onClick={() => setFilterView(cat.id as any)}
+                                                                            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all group"
+                                                                        >
+                                                                            <div className="flex items-center gap-3">
+                                                                                <span className="text-gray-400 dark:text-slate-500 group-hover:text-indigo-500 transition-colors">{cat.icon}</span>
+                                                                                <span className="text-sm font-bold text-gray-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{cat.label}</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                {cat.count > 0 && (
+                                                                                    <span className="text-[10px] font-black bg-indigo-500 text-white px-2 py-0.5 rounded-full">{cat.count}</span>
+                                                                                )}
+                                                                                <ChevronRight className="h-4 w-4 text-gray-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                                                                            </div>
+                                                                        </button>
+                                                                    ))}
+                                                                </>
+                                                            )}
+
+                                                            {filterView === 'sprints' && sprints.map(s => (
+                                                                <label key={s.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={tempFilters.sprints.includes(s.id)}
+                                                                        onChange={(e) => setTempFilters(prev => ({
+                                                                            ...prev,
+                                                                            sprints: e.target.checked
+                                                                                ? [...prev.sprints, s.id]
+                                                                                : prev.sprints.filter(id => id !== s.id)
+                                                                        }))}
+                                                                        className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
+                                                                    />
+                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                        <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${s.isActive ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-slate-600'}`} />
+                                                                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300 truncate">{s.name}</span>
+                                                                    </div>
+                                                                </label>
+                                                            ))}
+
+                                                            {filterView === 'modules' && (activeProject?.modules.length ?? 0) === 0 && (
+                                                                <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-8">No modules configured for this project.</p>
+                                                            )}
+                                                            {filterView === 'modules' && activeProject?.modules.map(m => (
+                                                                <label key={m.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={tempFilters.modules.includes(m.id)}
+                                                                        onChange={(e) => setTempFilters(prev => ({
+                                                                            ...prev,
+                                                                            modules: e.target.checked
+                                                                                ? [...prev.modules, m.id]
+                                                                                : prev.modules.filter(id => id !== m.id)
+                                                                        }))}
+                                                                        className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
+                                                                    />
+                                                                    <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{m.name}</span>
+                                                                </label>
+                                                            ))}
+
+                                                            {filterView === 'labels' && (activeProject?.labels.length ?? 0) === 0 && (
+                                                                <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-8">No labels configured for this project.</p>
+                                                            )}
+                                                            {filterView === 'labels' && activeProject?.labels.map(l => (
+                                                                <label key={l.id} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={tempFilters.labels.includes(l.id)}
+                                                                        onChange={(e) => setTempFilters(prev => ({
+                                                                            ...prev,
+                                                                            labels: e.target.checked
+                                                                                ? [...prev.labels, l.id]
+                                                                                : prev.labels.filter(id => id !== l.id)
+                                                                        }))}
+                                                                        className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
+                                                                    />
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: l.color }} />
+                                                                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{l.name}</span>
+                                                                    </div>
+                                                                </label>
+                                                            ))}
+
+                                                            {filterView === 'types' && (['ISSUE', 'TASK', 'FEATURE'] as IssueType[]).map(type => (
+                                                                <label key={type} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={tempFilters.types.includes(type)}
+                                                                        onChange={(e) => setTempFilters(prev => ({
+                                                                            ...prev,
+                                                                            types: e.target.checked
+                                                                                ? [...prev.types, type]
+                                                                                : prev.types.filter(t => t !== type)
+                                                                        }))}
+                                                                        className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-transparent"
+                                                                    />
+                                                                    <span className={`text-sm font-bold ${type === 'ISSUE' ? 'text-red-500' : type === 'TASK' ? 'text-blue-500' : 'text-purple-500'}`}>{type}</span>
+                                                                </label>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Modal Footer */}
+                                                        <div className="p-4 border-t border-gray-50 dark:border-slate-800/50 flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setTempFilters({ sprints: [], modules: [], labels: [], types: [] });
+                                                                    clearAllFilters();
+                                                                    setShowFilterModal(false);
+                                                                }}
+                                                                className="flex-1 py-2.5 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-2xl transition-all"
+                                                            >
+                                                                Clear All
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSprintIds(tempFilters.sprints);
+                                                                    setSelectedModuleIds(tempFilters.modules);
+                                                                    setSelectedLabelIds(tempFilters.labels);
+                                                                    setSelectedIssueTypes(tempFilters.types);
+                                                                    setShowFilterModal(false);
+                                                                }}
+                                                                className="flex-1 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-sm active:scale-95"
+                                                            >
+                                                                Apply Filters
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        )}
+                        </div>
 
-                        <div className={`${['home', 'drafts', 'your-work'].includes(activeTab) ? 'p-0' : 'p-6'}`}>
+                        <div className={`${['home', 'drafts', 'your-work', 'workspace'].includes(activeTab) || !activeProject ? 'p-0' : 'p-6'}`}>
                             {activeTab === 'home' ? (
                                 <Home
                                     user={user}
@@ -858,6 +952,14 @@ const MainApp: React.FC = () => {
                                     onCreateProject={() => setShowCreateMenu(true)}
                                     currentUserId={user?.id || ''}
                                     onJoinProject={handleJoinProject}
+                                    searchQuery={projectSearchQuery}
+                                    setSearchQuery={setProjectSearchQuery}
+                                    sortField={projectSortField}
+                                    setSortField={setProjectSortField}
+                                    sortOrder={projectSortOrder}
+                                    setSortOrder={setProjectSortOrder}
+                                    showFilterModal={showProjectFilterModal}
+                                    setShowFilterModal={setShowProjectFilterModal}
                                 />
                             ) : (
                                 <>
@@ -927,65 +1029,58 @@ const MainApp: React.FC = () => {
                                 </>
                             )}
                         </div>
-                    </main >
-                </div >
+                    </main>
+                </div>
 
+                {isSprintModalOpen && activeProject && (
+                    <SprintModal
+                        backlogItems={backlogItems.filter(item => item.projectId === activeProject?.id)}
+                        onClose={() => setIsSprintModalOpen(false)}
+                        onSave={handleCreateSprint}
+                    />
+                )}
 
-                {
-                    isSprintModalOpen && activeProject && (
-                        <SprintModal
-                            backlogItems={backlogItems.filter(item => item.projectId === activeProject.id)}
-                            onClose={() => setIsSprintModalOpen(false)}
-                            onSave={handleCreateSprint}
-                        />
-                    )
-                }
-
-                {
-                    isIssueModalOpen && activeProject && (
-                        <IssueDetail
-                            issue={selectedIssue}
-                            project={activeProject}
-                            users={MOCK_USERS}
-                            sprints={sprints}
-                            allIssues={issues}
-                            onClose={() => setIsIssueModalOpen(false)}
-                            onSave={selectedIssue?.id ? handleUpdateIssue : handleCreateIssue}
-                        />
-                    )
-                }
+                {isIssueModalOpen && activeProject && (
+                    <IssueDetail
+                        issue={selectedIssue}
+                        project={activeProject as Project}
+                        users={MOCK_USERS}
+                        sprints={sprints}
+                        allIssues={issues}
+                        onClose={() => setIsIssueModalOpen(false)}
+                        onSave={selectedIssue?.id ? handleUpdateIssue : handleCreateIssue}
+                    />
+                )}
 
                 {/* Notifications Portal */}
-                {
-                    showNotifications && (
-                        <>
-                            <div className="fixed inset-0 z-[60] cursor-pointer" onClick={() => setShowNotifications(false)} />
-                            <div className="fixed right-6 top-16 w-80 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[400px]">
-                                <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50 dark:bg-slate-900/50">
-                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Notifications</h3>
-                                    <button
-                                        onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                                        className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-                                    >
-                                        Clear all
-                                    </button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
-                                    {notifications.length === 0 ? (
-                                        <div className="p-8 text-center text-xs text-gray-400">Everything up to date.</div>
-                                    ) : (
-                                        notifications.map(n => (
-                                            <div key={n.id} className={`p-3 rounded-lg border transition-all ${n.read ? 'bg-transparent border-transparent opacity-60' : 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100/50 dark:border-indigo-800/50'}`}>
-                                                <p className="text-[10px] font-bold dark:text-white">{n.title}</p>
-                                                <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1">{n.message}</p>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
+                {showNotifications && (
+                    <>
+                        <div className="fixed inset-0 z-[60] cursor-pointer" onClick={() => setShowNotifications(false)} />
+                        <div className="fixed right-6 top-16 w-80 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[400px]">
+                            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50 dark:bg-slate-900/50">
+                                <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Notifications</h3>
+                                <button
+                                    onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                                    className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                                >
+                                    Clear all
+                                </button>
                             </div>
-                        </>
-                    )
-                }
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+                                {notifications.length === 0 ? (
+                                    <div className="p-8 text-center text-xs text-gray-400">Everything up to date.</div>
+                                ) : (
+                                    notifications.map(n => (
+                                        <div key={n.id} className={`p-3 rounded-lg border transition-all ${n.read ? 'bg-transparent border-transparent opacity-60' : 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-100/50 dark:border-indigo-800/50'}`}>
+                                            <p className="text-[10px] font-bold dark:text-white">{n.title}</p>
+                                            <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1">{n.message}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
 
                 <ProfileSettingsModal
                     isOpen={isProfileSettingsOpen}
@@ -997,8 +1092,8 @@ const MainApp: React.FC = () => {
                     notificationsEnabled={notificationsEnabled}
                     onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
                 />
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 
