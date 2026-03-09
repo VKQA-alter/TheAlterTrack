@@ -30,8 +30,8 @@ import {
     User as UserIcon,
     PanelLeft,
 } from 'lucide-react';
-import { Project, Issue, User, Sprint, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote, ProjectPlatform } from '../types';
-import { MOCK_USERS, DEFAULT_STATUSES, MOCK_LABELS, MOCK_MODULES, MOCK_PROJECTS } from '../constants';
+import { Project, Issue, Priority, Sprint, User, Role, Status, IssueType, Notification, TestCaseFile, BacklogItem, StickyNote, ProjectPlatform } from '../types';
+import { DEFAULT_STATUSES } from '../constants';
 import KanbanBoard from './KanbanBoard';
 import PriorityIcon from './PriorityIcon';
 import BacklogView from './BacklogView';
@@ -106,30 +106,48 @@ const MainApp: React.FC = () => {
     const [showProjectFilterModal, setShowProjectFilterModal] = useState(false);
 
     const [projects, setProjects] = useState<Project[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [sprints, setSprints] = useState<Sprint[]>([]);
+    const [issues, setIssues] = useState<Issue[]>([]);
+    const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
     const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
     useEffect(() => {
-        const fetchProjects = async () => {
+        const fetchInitialData = async () => {
             setIsLoadingProjects(true);
-            const { data, error } = await supabase.from('projects').select('*');
-            if (!error && data) {
-                // Merge Supabase projects with mock projects, avoiding duplicates by id
-                const supabaseProjects = data as Project[];
-                const allProjects = [...supabaseProjects];
 
-                MOCK_PROJECTS.forEach(mockProj => {
-                    if (!allProjects.find(p => p.id === mockProj.id)) {
-                        allProjects.push(mockProj);
-                    }
-                });
+            // Fetch Projects
+            const { data: projectsData } = await supabase.from('projects').select('*');
+            if (projectsData) setProjects(projectsData as Project[]);
 
-                setProjects(allProjects);
-            } else {
-                setProjects(MOCK_PROJECTS);
+            // Fetch Issues
+            const { data: issuesData } = await supabase.from('issues').select('*');
+            if (issuesData) setIssues(issuesData as Issue[]);
+
+            // Fetch Sprints
+            const { data: sprintsData } = await supabase.from('sprints').select('*');
+            if (sprintsData) setSprints(sprintsData as Sprint[]);
+
+            // Fetch Backlog Items
+            const { data: backlogData } = await supabase.from('backlog_items').select('*');
+            if (backlogData) setBacklogItems(backlogData as BacklogItem[]);
+
+            // Fetch All Users (Profiles)
+            const { data: profilesData } = await supabase.from('profiles').select('*');
+            if (profilesData) {
+                const mappedUsers = profilesData.map((p: any) => ({
+                    id: p.id,
+                    name: p.name || p.full_name || 'Unknown User',
+                    email: p.email || '',
+                    avatar: p.avatar || p.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${p.name || 'U'}`,
+                    role: p.role || 'MEMBER'
+                } as User));
+                setUsers(mappedUsers);
             }
+
             setIsLoadingProjects(false);
         };
-        fetchProjects();
+        fetchInitialData();
     }, []);
 
     const handleCreateProject = async (name: string, key: string, description: string, logo: string, visibility: 'PUBLIC' | 'PRIVATE', platform: ProjectPlatform) => {
@@ -137,7 +155,7 @@ const MainApp: React.FC = () => {
             id: `p${Date.now()}`,
             key, name, description, logo, visibility, platform,
             statuses: DEFAULT_STATUSES,
-            modules: [], labels: [], members: [{ userId: 'u1', role: 'OWNER' }]
+            modules: [], labels: [], members: [{ userId: user?.id || 'u1', role: 'OWNER' }]
         };
 
         const { error } = await supabase.from('projects').insert([newProj]);
@@ -202,76 +220,6 @@ const MainApp: React.FC = () => {
         }
     }, [isDarkMode]);
 
-    const [sprints, setSprints] = useState<Sprint[]>([
-        {
-            id: 's1',
-            name: 'Sprint 24 - Launch Prep',
-            isActive: true,
-            isCompleted: false,
-            goal: 'Fix all P0 bugs before launch.',
-            endDate: new Date().toISOString() // Simpler date for initial state
-        },
-        { id: 's2', name: 'Sprint 25 - Post Launch', isActive: false, isCompleted: false },
-    ]);
-
-    const [issues, setIssues] = useState<Issue[]>([
-        {
-            id: 'i1',
-            key: 'ALT-1',
-            title: 'Implement OAuth2 Authentication',
-            description: 'Need to support Google and GitHub SSO.',
-            type: 'FEATURE',
-            priority: 'HIGH',
-            statusId: '2',
-            assigneeId: 'u1',
-            reporterId: 'u3',
-            moduleIds: ['m1'],
-            labelIds: ['l2', 'l3'],
-            sprintId: 's1',
-            storyPoints: 5,
-            projectId: 'p1',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        },
-        {
-            id: 'i2',
-            key: 'ALT-2',
-            title: 'Fix sidebar overflow on mobile',
-            description: 'The sidebar doesn\'t collapse properly on screens smaller than 768px.',
-            type: 'ISSUE',
-            priority: 'URGENT',
-            statusId: '1',
-            assigneeId: 'u2',
-            reporterId: 'u1',
-            moduleIds: [],
-            labelIds: ['l1', 'l4'],
-            sprintId: 's1',
-            storyPoints: 2,
-            projectId: 'p1',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        },
-        {
-            id: 'i3',
-            key: 'PROJ-1',
-            title: 'Setup project workspace',
-            description: 'Define initial structures and folders.',
-            type: 'TASK',
-            priority: 'MEDIUM',
-            statusId: '1',
-            assigneeId: 'u1',
-            reporterId: 'u1',
-            moduleIds: [],
-            labelIds: [],
-            sprintId: 's1',
-            storyPoints: 3,
-            projectId: 'p2',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        }
-    ]);
-
-    const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
 
     const handleCreateSticky = () => {
         const newSticky: StickyNote = {
@@ -374,7 +322,7 @@ const MainApp: React.FC = () => {
             priority: issueData.priority || 'MEDIUM',
             statusId: issueData.statusId || activeProject.statuses[0].id,
             assigneeId: issueData.assigneeId,
-            reporterId: 'u1',
+            reporterId: user?.id || 'u1',
             moduleIds: issueData.moduleIds || [],
             labelIds: issueData.labelIds || [],
             projectId: activeProject.id,
@@ -457,7 +405,7 @@ const MainApp: React.FC = () => {
     };
 
     if (!user) {
-        return <SignIn onSignIn={() => setUser(MOCK_USERS[0])} />;
+        return <SignIn onSignIn={(userData) => setUser(userData)} />;
     }
 
     return (
@@ -678,38 +626,6 @@ const MainApp: React.FC = () => {
                                             </button>
                                         </div>
                                     )}
-                                    {activeProject && activeTab === 'issues' && (
-                                        <div className="flex items-center bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-gray-200 dark:border-slate-700/50">
-                                            <button
-                                                onClick={() => setActiveView('kanban')}
-                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'kanban' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                title="Kanban Board"
-                                            >
-                                                <Columns className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveView('list')}
-                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                title="List View"
-                                            >
-                                                <LayoutList className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveView('table')}
-                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'table' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                title="Table View"
-                                            >
-                                                <TableProperties className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveView('calendar')}
-                                                className={`p-1.5 rounded-lg transition-all ${activeView === 'calendar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                                                title="Calendar View"
-                                            >
-                                                <Calendar className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    )}
                                     {activeProject && (activeTab === 'issues' || activeTab === 'planning') && (
                                         <div className="relative flex items-center gap-2">
                                             <button
@@ -915,19 +831,18 @@ const MainApp: React.FC = () => {
                         </div>
 
                         <div className={`${['home', 'drafts', 'your-work', 'workspace'].includes(activeTab) || !activeProject ? 'p-0' : 'p-6'}`}>
-                            {activeTab === 'home' ? (
+                            {activeTab === 'home' && user && (
                                 <Home
                                     user={user}
-                                    recentIssues={issues}
+                                    users={users}
+                                    recentIssues={issues.filter(i => i.assigneeId === user.id || i.reporterId === user.id)}
                                     stickies={stickyNotes}
                                     onIssueClick={openIssueDetail}
                                     onAddSticky={handleCreateSticky}
-                                    onViewAllIssues={() => {
-                                        if (activeProject) setActiveTab('issues');
-                                        else setActiveTab('workspace');
-                                    }}
+                                    onViewAllIssues={() => setActiveTab('issues')}
                                 />
-                            ) : activeTab === 'stickies' ? (
+                            )}
+                            {activeTab === 'stickies' ? (
                                 <StickyNotes
                                     notes={stickyNotes}
                                     onCreate={handleCreateSticky}
@@ -941,6 +856,7 @@ const MainApp: React.FC = () => {
                             ) : activeTab === 'workspace' || !activeProject ? (
                                 <Workspace
                                     projects={projects}
+                                    users={users}
                                     onSelectProject={(id: string) => {
                                         setSelectedProjectId(id);
                                         setActiveTab('planning');
@@ -963,26 +879,27 @@ const MainApp: React.FC = () => {
                                 />
                             ) : (
                                 <>
-                                    {activeTab === 'backlog' && (
+                                    {activeTab === 'backlog' && activeProject && (
                                         <Backlog
                                             project={activeProject}
-                                            issues={issues}
+                                            issues={issues.filter(i => i.projectId === activeProject.id)}
                                             sprints={sprints}
-                                            backlogItems={backlogItems.filter(item => item.projectId === activeProject.id)}
+                                            users={users}
+                                            backlogItems={backlogItems.filter(i => i.projectId === activeProject.id)}
                                             onIssueClick={openIssueDetail}
                                             onUpdateIssue={handleUpdateIssue}
-                                            onCreateIssue={() => { setSelectedIssue(null); setIsIssueModalOpen(true); }}
                                             onCreateBacklogItem={handleCreateBacklogItem}
                                             onUpdateBacklogItem={handleUpdateBacklogItem}
                                             onDeleteBacklogItem={handleDeleteBacklogItem}
                                         />
                                     )}
-                                    {activeTab === 'planning' && (
+                                    {activeTab === 'planning' && activeProject && (
                                         <BacklogView
                                             project={activeProject}
-                                            issues={issues}
+                                            issues={issues.filter(i => i.projectId === activeProject.id)}
                                             sprints={sprints}
-                                            backlogItems={backlogItems}
+                                            users={users}
+                                            backlogItems={backlogItems.filter(i => i.projectId === activeProject.id)}
                                             onIssueClick={openIssueDetail}
                                             onUpdateIssue={handleUpdateIssue}
                                             onSprintClick={handleSprintClick}
@@ -995,6 +912,7 @@ const MainApp: React.FC = () => {
                                                 project={activeProject}
                                                 issues={filteredIssues}
                                                 sprints={sprints}
+                                                users={users}
                                                 onIssueClick={openIssueDetail}
                                                 onUpdateIssue={handleUpdateIssue}
                                                 onQuickCreate={(statusId) => {
@@ -1006,6 +924,8 @@ const MainApp: React.FC = () => {
                                             <IssuesListView
                                                 issues={filteredIssues}
                                                 project={activeProject}
+                                                sprints={sprints}
+                                                users={users}
                                                 onIssueClick={openIssueDetail}
                                             />
                                         ) : activeView === 'table' ? (
@@ -1013,6 +933,7 @@ const MainApp: React.FC = () => {
                                                 issues={filteredIssues}
                                                 project={activeProject}
                                                 sprints={sprints}
+                                                users={users}
                                                 onIssueClick={openIssueDetail}
                                             />
                                         ) : (
@@ -1025,7 +946,7 @@ const MainApp: React.FC = () => {
                                     )}
                                     {activeTab === 'insights' && <Insights issues={issues} sprints={sprints} />}
                                     {activeTab === 'test-cases' && <TestCaseManager project={activeProject} files={testCaseFiles} onUpdateFiles={setTestCaseFiles} />}
-                                    {activeTab === 'settings' && <ProjectSettings project={activeProject} setProjects={setProjects} onDeleteProject={handleDeleteProject} />}
+                                    {activeTab === 'settings' && <ProjectSettings project={activeProject} users={users} setProjects={setProjects} onDeleteProject={handleDeleteProject} />}
                                 </>
                             )}
                         </div>
@@ -1044,7 +965,7 @@ const MainApp: React.FC = () => {
                     <IssueDetail
                         issue={selectedIssue}
                         project={activeProject as Project}
-                        users={MOCK_USERS}
+                        users={users}
                         sprints={sprints}
                         allIssues={issues}
                         onClose={() => setIsIssueModalOpen(false)}

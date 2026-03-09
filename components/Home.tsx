@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 import { Issue, StickyNote, User } from '../types';
 import PriorityIcon from './PriorityIcon';
-import { MOCK_USERS } from '../constants';
 
 interface HomeProps {
     user: User;
+    users: User[];
     recentIssues: Issue[];
     stickies: StickyNote[];
     onIssueClick: (issue: Issue) => void;
@@ -26,6 +26,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({
     user,
+    users,
     recentIssues,
     stickies,
     onIssueClick,
@@ -87,7 +88,7 @@ const Home: React.FC<HomeProps> = ({
                                             <div className="h-4 w-4 rounded-full border-2 border-dashed border-gray-300 dark:border-slate-700" />
                                             <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-slate-700" />
                                             <img
-                                                src={MOCK_USERS.find(u => u.id === issue.assigneeId)?.avatar || user.avatar}
+                                                src={users.find(u => u.id === issue.assigneeId)?.avatar || user.avatar}
                                                 className="h-6 w-6 rounded-full border border-white dark:border-slate-800 shadow-sm"
                                                 alt="avatar"
                                             />

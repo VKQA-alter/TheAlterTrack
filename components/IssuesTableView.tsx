@@ -1,16 +1,16 @@
 import React from 'react';
-import { Issue, Project, Sprint } from '../types';
-import { MOCK_USERS } from '../constants';
+import { Issue, Project, Sprint, User } from '../types';
 import PriorityIcon from './PriorityIcon';
 
 interface IssuesTableViewProps {
     issues: Issue[];
     project: Project;
     sprints: Sprint[];
+    users: User[];
     onIssueClick: (issue: Issue) => void;
 }
 
-const IssuesTableView: React.FC<IssuesTableViewProps> = ({ issues, project, sprints, onIssueClick }) => {
+const IssuesTableView: React.FC<IssuesTableViewProps> = ({ issues, project, sprints, users, onIssueClick }) => {
     if (issues.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
@@ -34,7 +34,7 @@ const IssuesTableView: React.FC<IssuesTableViewProps> = ({ issues, project, spri
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-slate-800/30">
                     {issues.map(issue => {
-                        const assignee = MOCK_USERS.find(u => u.id === issue.assigneeId);
+                        const assignee = users.find(u => u.id === issue.assigneeId);
                         const sprint = sprints.find(s => s.id === issue.sprintId);
                         const status = project.statuses.find(s => s.id === issue.statusId);
 
