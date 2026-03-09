@@ -15,10 +15,11 @@ import {
     X,
     User as UserIcon
 } from 'lucide-react';
-import { Project, Role, ProjectPlatform } from '../types';
+import { Project, Role, ProjectPlatform, User } from '../types';
 
 interface WorkspaceProps {
     projects: Project[];
+    users: User[];
     onSelectProject: (id: string) => void;
     onGoToSettings: (id: string) => void;
     onCreateProject: () => void;
@@ -39,6 +40,7 @@ type SortOrder = 'asc' | 'desc';
 
 const Workspace: React.FC<WorkspaceProps> = ({
     projects,
+    users,
     onSelectProject,
     onGoToSettings,
     onCreateProject,
@@ -99,13 +101,6 @@ const Workspace: React.FC<WorkspaceProps> = ({
         members: 'Number of members'
     };
 
-    const mockLeads = [
-        { name: 'You', avatar: 'V', color: 'bg-emerald-500' },
-        { name: 'aditya', avatar: 'A', color: 'bg-orange-500' },
-        { name: 'akshay', avatar: 'A', color: 'bg-indigo-500' },
-        { name: 'beast', avatar: 'A', color: 'bg-cyan-500' },
-        { name: 'cibi', avatar: 'C', color: 'bg-teal-500' },
-    ];
 
     return (
         <div className="p-8 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
@@ -157,8 +152,14 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                 <div className="flex items-center -space-x-2">
                                     {project.members && project.members.length > 0 ? (
                                         project.members.slice(0, 3).map((m, idx) => (
-                                            <div key={idx} className="h-7 w-7 rounded-full bg-slate-800 border-2 border-[#161718] flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
-                                                {m.userId.substring(0, 2).toUpperCase()}
+                                            <div key={idx} className="h-7 w-7 rounded-full bg-slate-800 border-2 border-[#161718] flex items-center justify-center overflow-hidden shadow-sm">
+                                                {users.find(u => u.id === m.userId)?.avatar ? (
+                                                    <img src={users.find(u => u.id === m.userId)?.avatar} alt="avatar" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-slate-400">
+                                                        {users.find(u => u.id === m.userId)?.name?.substring(0, 2).toUpperCase() || m.userId.substring(0, 2).toUpperCase()}
+                                                    </span>
+                                                )}
                                             </div>
                                         ))
                                     ) : (
@@ -261,15 +262,19 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                 </button>
                                 {filterExpanded.lead && (
                                     <div className="space-y-1 pl-1">
-                                        {mockLeads.map(lead => (
-                                            <label key={lead.name} className="flex items-center gap-3 p-2 hover:bg-slate-800/40 rounded-lg cursor-pointer transition-colors group">
+                                        {users.slice(0, 5).map(lead => (
+                                            <label key={lead.id} className="flex items-center gap-3 p-2 hover:bg-slate-800/40 rounded-lg cursor-pointer transition-colors group">
                                                 <div className="h-4 w-4 rounded border border-slate-700 flex items-center justify-center group-hover:border-indigo-500">
                                                     <Check className="h-3 w-3 text-transparent group-hover:text-indigo-500" />
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className={`h-6 w-6 rounded-full ${lead.color} flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}>
-                                                        {lead.avatar}
-                                                    </div>
+                                                    {lead.avatar ? (
+                                                        <img src={lead.avatar} className="h-6 w-6 rounded-full border border-slate-700 shadow-sm" alt={lead.name} />
+                                                    ) : (
+                                                        <div className="h-6 w-6 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                                                            {lead.name.substring(0, 1).toUpperCase()}
+                                                        </div>
+                                                    )}
                                                     <span className="text-sm text-slate-400 font-medium">{lead.name}</span>
                                                 </div>
                                             </label>
@@ -290,15 +295,19 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                 </button>
                                 {filterExpanded.members && (
                                     <div className="space-y-1 pl-1">
-                                        {mockLeads.slice(0, 3).map(member => (
-                                            <label key={member.name} className="flex items-center gap-3 p-2 hover:bg-slate-800/40 rounded-lg cursor-pointer transition-colors group">
+                                        {users.slice(0, 3).map(member => (
+                                            <label key={member.id} className="flex items-center gap-3 p-2 hover:bg-slate-800/40 rounded-lg cursor-pointer transition-colors group">
                                                 <div className="h-4 w-4 rounded border border-slate-700 flex items-center justify-center group-hover:border-indigo-500">
                                                     <Check className="h-3 w-3 text-transparent group-hover:text-indigo-500" />
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className={`h-6 w-6 rounded-full ${member.color} flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}>
-                                                        {member.avatar}
-                                                    </div>
+                                                    {member.avatar ? (
+                                                        <img src={member.avatar} className="h-6 w-6 rounded-full border border-slate-700 shadow-sm" alt={member.name} />
+                                                    ) : (
+                                                        <div className="h-6 w-6 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                                                            {member.name.substring(0, 1).toUpperCase()}
+                                                        </div>
+                                                    )}
                                                     <span className="text-sm text-slate-400 font-medium">{member.name}</span>
                                                 </div>
                                             </label>

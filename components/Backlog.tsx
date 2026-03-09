@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Project, Issue, Sprint, BacklogItem } from '../types';
-import { PRIORITY_COLORS, MOCK_USERS } from '../constants';
+import { Project, Issue, Sprint, BacklogItem, User } from '../types';
+import { PRIORITY_COLORS } from '../constants';
 import { GripVertical, Plus, Star, FileText, Trash2, Edit3 } from 'lucide-react';
 import { IssueTypeIcon } from './IssueDetail';
 import PriorityIcon from './PriorityIcon';
@@ -11,6 +11,7 @@ interface BacklogProps {
     project: Project;
     issues: Issue[];
     sprints: Sprint[];
+    users: User[];
     backlogItems: BacklogItem[];
     onIssueClick: (issue: Issue) => void;
     onUpdateIssue: (issue: Issue) => void;
@@ -24,6 +25,7 @@ const Backlog: React.FC<BacklogProps> = ({
     project,
     issues,
     sprints,
+    users,
     backlogItems,
     onIssueClick,
     onUpdateIssue,
@@ -251,7 +253,7 @@ const Backlog: React.FC<BacklogProps> = ({
 
                                     <div className="w-12 flex justify-end flex-shrink-0">
                                         <img
-                                            src={MOCK_USERS.find(u => u.id === issue.assigneeId)?.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=U'}
+                                            src={users.find(u => u.id === issue.assigneeId)?.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=U'}
                                             className="h-6 w-6 rounded-full border border-gray-100 dark:border-slate-800"
                                             alt="avatar"
                                         />

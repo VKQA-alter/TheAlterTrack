@@ -21,57 +21,8 @@ export const DEFAULT_STATUSES: Status[] = [
   { id: '4', name: 'Done', color: '#22c55e', category: 'DONE', order: 3 },
 ];
 
-export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Vamshi M', email: 'vamshi@altertrack.io', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vamshi', role: 'OWNER' },
-  { id: 'u2', name: 'Jordan Smith', email: 'jordan@altertrack.io', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jordan', role: 'MEMBER' },
-  { id: 'u3', name: 'Casey Lee', email: 'casey@altertrack.io', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Casey', role: 'ADMIN' },
-  ...Array.from({ length: 50 }, (_, i) => ({
-    id: `u${i + 4}`,
-    name: `User ${i + 4}`,
-    email: `user${i + 4}@altertrack.io`,
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=User${i + 4}`,
-    role: 'MEMBER' as const
-  }))
-];
 
-export const MOCK_LABELS: Label[] = [
-  { id: 'l1', name: 'Frontend', color: '#3b82f6' },
-  { id: 'l2', name: 'Backend', color: '#ef4444' },
-  { id: 'l3', name: 'API', color: '#8b5cf6' },
-  { id: 'l4', name: 'Design', color: '#ec4899' },
-];
-
-export const MOCK_MODULES: Module[] = [
-  { id: 'm1', name: 'Auth Service', description: 'Authentication and user sessions' },
-  { id: 'm2', name: 'Payment Gateway', description: 'Stripe integration' },
-  { id: 'm3', name: 'Analytics', description: 'Reporting engine' },
-];
-
-export const MOCK_PROJECTS: Project[] = [
-  {
-    id: 'p1',
-    key: 'ALT',
-    name: 'TheAlterTrack',
-    description: 'The ultimate project tracking tool for modern teams.',
-    logo: '🚀',
-    visibility: 'PUBLIC',
-    platform: 'DESKTOP',
-    statuses: DEFAULT_STATUSES,
-    modules: MOCK_MODULES,
-    labels: MOCK_LABELS,
-    members: [{ userId: 'u1', role: 'OWNER' }]
-  },
-  {
-    id: 'p2',
-    key: 'PROJ',
-    name: 'Sample Project',
-    description: 'A sample project to demonstrate the navigation.',
-    logo: '📁',
-    visibility: 'PUBLIC',
-    platform: 'DESKTOP',
-    statuses: DEFAULT_STATUSES,
-    modules: [],
-    labels: [],
-    members: [{ userId: 'u1', role: 'OWNER' }]
-  }
-];
+export const MOCK_LABELS: Label[] = [];
+export const MOCK_MODULES: Module[] = [];
+export const MOCK_PROJECTS: Project[] = [];
+export const MOCK_USERS: User[] = [];

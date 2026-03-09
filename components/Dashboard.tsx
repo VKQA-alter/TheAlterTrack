@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Project, ProjectPlatform } from '../types';
+import { Project, ProjectPlatform, User } from '../types';
 import {
   Plus,
   Folder,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 interface DashboardProps {
+  user: User | null;
   projects: Project[];
   onSelectProject: (id: string) => void;
   onCreateProject: (name: string, key: string, description: string, logo: string, visibility: 'PUBLIC' | 'PRIVATE', platform: ProjectPlatform) => void;
@@ -26,6 +27,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
+  user,
   projects,
   onSelectProject,
   onCreateProject,
@@ -340,7 +342,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[minmax(240px,auto)] grid-flow-dense px-4">
         {projects.map((project, index) => {
           // current user is u1
-          const isMember = project.members.some(m => m.userId === 'u1');
+          const isMember = project.members.some(m => m.userId === user?.id);
 
           // Bento Grid Pattern
           const isFeatured = index === 0;

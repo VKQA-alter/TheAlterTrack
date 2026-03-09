@@ -1,6 +1,6 @@
 import React from 'react';
-import { Project, Issue, Priority, Sprint } from '../types';
-import { PRIORITY_COLORS, MOCK_USERS } from '../constants';
+import { Project, Issue, Priority, Sprint, User } from '../types';
+import { PRIORITY_COLORS } from '../constants';
 import {
   MoreHorizontal,
   Layers,
@@ -23,12 +23,13 @@ interface KanbanBoardProps {
   project: Project;
   issues: Issue[];
   sprints: Sprint[];
+  users: User[];
   onIssueClick: (issue: Issue) => void;
   onUpdateIssue: (issue: Issue) => void;
   onQuickCreate: (statusId: string) => void;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onIssueClick, onUpdateIssue, onQuickCreate }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, users, onIssueClick, onUpdateIssue, onQuickCreate }) => {
   const [activeDropdown, setActiveDropdown] = React.useState<{ issueId: string, type: 'status' | 'priority' | 'assignee' | 'module' | 'sprint' | 'labels' | 'startDate' | 'dueDate' } | null>(null);
 
   const getIssuesForStatus = (statusId: string) => {
@@ -127,7 +128,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
           {/* Cards Area */}
           <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
             {getIssuesForStatus(status.id).map(issue => {
-              const assignee = MOCK_USERS.find(u => u.id === issue.assigneeId);
+              const assignee = users.find(u => u.id === issue.assigneeId);
               const mainModule = project.modules.find(m => issue.moduleIds.includes(m.id));
               const currentSprint = sprints.find(s => s.id === issue.sprintId);
 
@@ -278,12 +279,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ project, issues, sprints, onI
                           }}
                           className="h-6 w-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white border border-white dark:border-slate-800 shadow-sm shrink-0 hover:scale-110 transition-transform cursor-pointer"
                         >
-                          {assignee ? assignee.name.charAt(0) : '?'}
+                          {assignee ? (
+                            assignee.avatar ? (
+                              <img src={assignee.avatar} alt={assignee.name} className="h-full w-full object-cover" />
+                            ) : (
+                              assignee.name.charAt(0)
+                            )
+                          ) : '?'}
                         </button>
 
                         {isDropdownOpen('assignee') && (
                           <div className="absolute top-full right-0 mt-1 w-40 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg shadow-xl z-50 py-1 overflow-hidden">
-                            {MOCK_USERS.map(u => (
+                            {users.map(u => (
                               <button
                                 key={u.id}
                                 onClick={() => handleUpdate(issue, { assigneeId: u.id })}

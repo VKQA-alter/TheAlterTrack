@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Project, Issue, Sprint, Priority, BacklogItem } from '../types';
-import { PRIORITY_COLORS, MOCK_USERS } from '../constants';
+import { Project, Issue, Sprint, Priority, BacklogItem, User } from '../types';
+import { PRIORITY_COLORS } from '../constants';
 import { ChevronDown, ChevronRight, GripVertical, Plus, ExternalLink, Star } from 'lucide-react';
 import { IssueTypeIcon } from './IssueDetail';
 import PriorityIcon from './PriorityIcon';
@@ -10,6 +10,7 @@ interface BacklogViewProps {
   project: Project;
   issues: Issue[];
   sprints: Sprint[];
+  users: User[];
   backlogItems: BacklogItem[];
   onIssueClick: (issue: Issue) => void;
   onUpdateIssue: (issue: Issue) => void;
@@ -21,6 +22,7 @@ const BacklogView: React.FC<BacklogViewProps> = ({
   project,
   issues,
   sprints,
+  users,
   backlogItems,
   onIssueClick,
   onUpdateIssue,
@@ -107,7 +109,7 @@ const BacklogView: React.FC<BacklogViewProps> = ({
               </div>
               <div className="w-8 flex justify-end">
                 <img
-                  src={MOCK_USERS.find(u => u.id === issue.assigneeId)?.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=U'}
+                  src={users.find(u => u.id === issue.assigneeId)?.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=U'}
                   className="h-6 w-6 rounded-full border border-gray-100 dark:border-slate-800"
                   alt="avatar"
                 />

@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { Project, Status, Module, Label, User, Role } from '../types';
 import { Plus, Trash2, Edit3, GripVertical, Boxes, Tag, Users, UserPlus, X, Image as ImageIcon, AlertTriangle, Settings, Workflow } from 'lucide-react';
-import { MOCK_USERS } from '../constants';
-
 interface ProjectSettingsProps {
   project: Project;
+  users: User[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   onDeleteProject: (id: string) => void;
 }
 
 type SettingsTab = 'general' | 'modules' | 'labels' | 'workflow' | 'team';
 
-const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, setProjects, onDeleteProject }) => {
+const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, users, setProjects, onDeleteProject }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description);
@@ -137,8 +136,8 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, setProjects,
   const addMember = () => {
     if (!newUserEmail.trim()) return;
 
-    // Find user in MOCK_USERS
-    const userToAdd = MOCK_USERS.find(u => u.email.toLowerCase() === newUserEmail.toLowerCase());
+    // Find user in users prop
+    const userToAdd = users.find(u => u.email.toLowerCase() === newUserEmail.toLowerCase());
 
     if (!userToAdd) {
       alert('User not found in system (try alex@altertrack.io, jordan@..., casey@...)');
@@ -181,7 +180,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, setProjects,
     ));
   };
 
-  const getMemberDetails = (userId: string) => MOCK_USERS.find(u => u.id === userId);
+  const getMemberDetails = (userId: string) => users.find(u => u.id === userId);
 
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'general', label: 'General', icon: <Settings className="h-4 w-4" /> },

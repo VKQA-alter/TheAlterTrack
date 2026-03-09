@@ -4,8 +4,10 @@ import { Loader2 } from 'lucide-react';
 import RotatingText from './RotatingText';
 import DarkVeil from './DarkVeil';
 
+import { User } from '../types';
+
 interface SignInProps {
-    onSignIn: () => void;
+    onSignIn: (user: User) => void;
 }
 
 const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
@@ -13,9 +15,16 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
 
     const handleGoogleSignIn = () => {
         setIsLoading(true);
-        // Simulate authentication delay
+        // Simulate authentication with a real user profile (not MOCK_USERS)
         setTimeout(() => {
-            onSignIn();
+            const newUser: User = {
+                id: 'u1',
+                name: 'Vamshi M',
+                email: 'vamshi@altertrack.io',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vamshi',
+                role: 'OWNER'
+            };
+            onSignIn(newUser);
             setIsLoading(false);
         }, 1500);
     };

@@ -1,15 +1,17 @@
 import React from 'react';
-import { Issue, Project, Priority } from '../types';
+import { Issue, Project, Priority, Sprint, User } from '../types';
 import PriorityIcon from './PriorityIcon';
 import { Clock } from 'lucide-react';
 
 interface IssuesListViewProps {
     issues: Issue[];
     project: Project;
+    sprints: Sprint[];
+    users: User[];
     onIssueClick: (issue: Issue) => void;
 }
 
-const IssuesListView: React.FC<IssuesListViewProps> = ({ issues, project, onIssueClick }) => {
+const IssuesListView: React.FC<IssuesListViewProps> = ({ issues, project, sprints, users, onIssueClick }) => {
     if (issues.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
@@ -63,6 +65,13 @@ const IssuesListView: React.FC<IssuesListViewProps> = ({ issues, project, onIssu
                                 {project.statuses.find(s => s.id === issue.statusId)?.name || 'Backlog'}
                             </span>
                         </div>
+                        {users.find(u => u.id === issue.assigneeId) && (
+                            <img
+                                src={users.find(u => u.id === issue.assigneeId)?.avatar}
+                                className="h-6 w-6 rounded-full border border-white dark:border-slate-800 shadow-sm"
+                                alt=""
+                            />
+                        )}
                     </div>
                 </div>
             ))}
